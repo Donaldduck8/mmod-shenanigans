@@ -97,6 +97,9 @@ class CMomentumGameMovement : public CGameMovement
     virtual void FinishGravity(void) OVERRIDE;
     virtual void StuckGround(void);
 
+    // Fixes
+    bool IsValidMovementTrace(trace_t &tr);
+
   private:
     float m_flReflectNormal; // Used by rampboost fix
     CMomentumPlayer *m_pPlayer;
