@@ -129,7 +129,7 @@
 		"use_proportional_insets"		"0"
 		"Default"		"0"
 		"cvar_name"		"mom_speedometer_hvel"
-		"cvar_value"		"0"
+		"cvar_value"		"1"
 	}
     "SpeedoUnitsLabel"
 	{

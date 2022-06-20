@@ -31,7 +31,7 @@ using namespace vgui;
 #define LASTJUMPVEL_TIMEOUT 3.0f
 
 static MAKE_TOGGLE_CONVAR(
-    mom_speedometer_hvel, "0", FLAG_HUD_CVAR | FCVAR_CLIENTCMD_CAN_EXECUTE,
+    mom_speedometer_hvel, "1", FLAG_HUD_CVAR | FCVAR_CLIENTCMD_CAN_EXECUTE,
     "Toggles showing only the horizontal component of player speed. 0 = OFF (XYZ), 1 = ON (XY)\n");
 
 static MAKE_CONVAR(mom_speedometer_units, "1", FLAG_HUD_CVAR | FCVAR_CLIENTCMD_CAN_EXECUTE,

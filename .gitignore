@@ -101,3 +101,12 @@ mp/game/bin/
 *.cfg
 .idea/
 CMakeLists.txt
+
+# TrikzClient
+*.vsidx
+*.db-shm
+*.db-wal
+*.opendb
+fileList.bin
+read.lock
+mp/game/momentum/bin/

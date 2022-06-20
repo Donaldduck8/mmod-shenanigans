@@ -781,26 +781,34 @@ void CMomentumGameMovement::CategorizePosition()
 
 void CMomentumGameMovement::FinishGravity(void)
 {
+    float ent_gravity;
     if (player->m_flWaterJumpTime)
         return;
+    if (player->GetGravity())
+        ent_gravity = player->GetGravity();
+    else
+        ent_gravity = 1.0;
 
     // Get the correct velocity for the end of the dt
-    mv->m_vecVelocity[2] -= (player->GetGravity() * GetCurrentGravity() * 0.5 * gpGlobals->frametime);
-
+    mv->m_vecVelocity[2] -= (ent_gravity * GetCurrentGravity() * gpGlobals->frametime * 0.5);
     CheckVelocity();
 }
 
 void CMomentumGameMovement::StartGravity(void)
 {
+    float ent_gravity;
+    if (player->GetGravity())
+        ent_gravity = player->GetGravity();
+    else
+        ent_gravity = 1.0;
+
     // Add gravity so they'll be in the correct position during movement
     // yes, this 0.5 looks wrong, but it's not.
-    mv->m_vecVelocity[2] -= (player->GetGravity() * GetCurrentGravity() * 0.5 * gpGlobals->frametime);
+    mv->m_vecVelocity[2] -= (ent_gravity * GetCurrentGravity() * 0.5 * gpGlobals->frametime);
     mv->m_vecVelocity[2] += player->GetBaseVelocity()[2] * gpGlobals->frametime;
-
     Vector temp = player->GetBaseVelocity();
     temp[2] = 0;
     player->SetBaseVelocity(temp);
-
     CheckVelocity();
 }
 
