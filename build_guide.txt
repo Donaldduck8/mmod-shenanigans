@@ -1,0 +1,9 @@
+Follow https://developer.valvesoftware.com/wiki/Source_SDK_2013
+Clone mmod-shenanigans
+Checkout trikz-testing
+Extract gason-master into mp/src/thirdparty/gason/src
+Create symlink with 
+- mklink /J "C:\Program Files (x86)\Steam\steamapps\sourcemods\momentum\bin" "C:\Users\Donald\Documents\GitHub\mmod-shenanigans\mp\game\momentum\bin"
+Open momentum.sln
+Change build target to Release
+Build Solution
