@@ -549,7 +549,7 @@ class CTimerCommands
 static ConCommand mom_practice("mom_practice", CTimerCommands::PracticeMove,
                                "Toggle. Stops timer and allows player to fly around in noclip.\n"
                                "Only activates when player is not pressing any movement inputs.\n",
-                               FCVAR_CHEAT);
+                               FCVAR_CLIENTCMD_CAN_EXECUTE);
 static ConCommand
     mom_mark_start("mom_mark_start", CTimerCommands::MarkStart,
                    "Marks a starting point inside the start trigger for a more customized starting location.\n",
