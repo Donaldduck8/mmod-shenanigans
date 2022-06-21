@@ -455,7 +455,7 @@ class CTimerCommands
 
     static void PracticeMove()
     {
-        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
         if (!pPlayer || !pPlayer->m_bAllowUserTeleports)
             return;
 
