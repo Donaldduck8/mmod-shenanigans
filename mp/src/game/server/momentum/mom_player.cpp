@@ -321,8 +321,8 @@ bool CMomentumPlayer::CanGrabLadder(const Vector &pos, const Vector &normal)
 CBaseEntity *CMomentumPlayer::EntSelectSpawnPoint()
 {
     CBaseEntity *pStart = nullptr;
-    const char *spawns[] = {"info_player_start", "info_player_counterterrorist", "info_player_terrorist"};
-    for (int i = 0; i < 3; i++)
+    const char *spawns[] = {"trigger_momentum_timer_start", "info_player_start", "info_player_counterterrorist", "info_player_terrorist"};
+    for (int i = 0; i < 4; i++)
     {
         if (SelectSpawnSpot(spawns[i], pStart))
             return pStart;
