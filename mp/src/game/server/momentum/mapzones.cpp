@@ -330,13 +330,14 @@ void CMapzoneData::SpawnMapZones()
 
 void CMapzoneData::DrawMapZones() 
 {
+    int MAX_RNG_VAL = 255;
     for (int i = 0; i < m_zones.Count(); i++)
     {
         CMapzone *zone = m_zones[i];
 
-        int waveSpeed = abs(int(sin(gpGlobals->curtime) * 255));
+        int waveCycleVal = abs(int(sin(gpGlobals->curtime) * MAX_RNG_VAL));
         int RValue, GValue, BValue;
-        RValue = GValue = BValue = waveSpeed;
+        RValue = GValue = BValue = waveCycleVal;
 
         Vector zonePosition = *zone->GetPosition();
         Vector zoneScaleMins = *zone->GetScaleMins();
@@ -360,18 +361,21 @@ void CMapzoneData::DrawMapZones()
         Vector BottomRightFront = {zonePosition.x + zoneScaleMins.x, zonePosition.y + zoneScaleMins.y,
                                    zonePosition.z + zoneScaleMins.z};
 
-        DebugDrawLine(TopLeftBack, TopRightBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(BottomLeftBack, BottomRightBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopLeftBack, BottomLeftBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopRightBack, BottomRightBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopLeftFront, TopRightFront, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(BottomLeftFront, BottomRightFront, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopLeftFront, BottomLeftFront, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopRightFront, BottomRightFront, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopLeftFront, TopLeftBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(BottomLeftFront, BottomLeftBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(TopRightFront, TopRightBack, RValue, GValue, BValue, false, -1.0f);
-        DebugDrawLine(BottomRightFront, BottomRightBack, RValue, GValue, BValue, false, -1.0f);
+        if (waveCycleVal > MAX_RNG_VAL / 3.5)
+        {
+            DebugDrawLine(TopLeftBack, TopRightBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(BottomLeftBack, BottomRightBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopLeftBack, BottomLeftBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopRightBack, BottomRightBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopLeftFront, TopRightFront, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(BottomLeftFront, BottomRightFront, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopLeftFront, BottomLeftFront, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopRightFront, BottomRightFront, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopLeftFront, TopLeftBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(BottomLeftFront, BottomLeftBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(TopRightFront, TopRightBack, RValue, GValue, BValue, false, -1.0f);
+            DebugDrawLine(BottomRightFront, BottomRightBack, RValue, GValue, BValue, false, -1.0f);
+        }
     }
 }
 
