@@ -63,8 +63,6 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
     CMomentumPlayer();
     ~CMomentumPlayer(void);
 
-   void *SendProxy_SendRunEntData(const SendProp *pProp, const void *pStruct, const void *pVarData, CSendProxyRecipients *pRecipients, int objectID);
-
     static CMomentumPlayer *CreatePlayer(const char *className, edict_t *ed)
     {
         s_PlayerEdict = ed;
@@ -148,7 +146,6 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
 
     CNetworkVarEmbedded(CMOMRunEntityData, m_RunData); // Current run data, used for hud elements
     CNetworkVarEmbedded(CMomRunStats, m_RunStats);     // Run stats, also used for hud elements
-    CNetworkVarEmbedded(CMomentumTimer, m_Timer);      // Player Timer :)
 
     void GetBulletTypeParameters(int iBulletType, float &fPenetrationPower, float &flPenetrationDistance);
 

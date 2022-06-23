@@ -15,19 +15,6 @@
 
 #define AVERAGE_STATS_INTERVAL 0.1
 
-void *SendProxy_SendPlayer(const SendProp *pProp, const void *pStruct, const void *pVarData, CSendProxyRecipients *pRecipients, int objectID)
-{
-    CMomentumPlayer *pPlayer = dynamic_cast<CMomentumPlayer *>((CBasePlayer *)pStruct);
-    if (!pPlayer)
-        return (void *)pVarData;
-
-    pRecipients->SetOnly(pPlayer->GetClientIndex());
-
-    Msg("SendPlayer Proxy: %i\n", pPlayer->GetClientIndex());
-
-    return (void *)pVarData;
-}
-
 CON_COMMAND(mom_strafesync_reset, "Reset the strafe sync. (works only when timer is disabled)\n")
 {
     CMomentumPlayer *pPlayer = dynamic_cast<CMomentumPlayer *>(UTIL_GetCommandClient());
@@ -39,7 +26,7 @@ CON_COMMAND(mom_strafesync_reset, "Reset the strafe sync. (works only when timer
     }
 }
 
-BEGIN_SEND_TABLE(CMomentumPlayer, DT_MOM_Player)
+IMPLEMENT_SERVERCLASS_ST(CMomentumPlayer, DT_MOM_Player)
 SendPropExclude("DT_BaseAnimating", "m_nMuzzleFlashParity"), SendPropInt(SENDINFO(m_iShotsFired)),
     SendPropInt(SENDINFO(m_iDirection)), SendPropBool(SENDINFO(m_bResumeZoom)), SendPropInt(SENDINFO(m_iLastZoom)),
     SendPropBool(SENDINFO(m_bDidPlayerBhop)), SendPropInt(SENDINFO(m_iSuccessiveBhops)),
@@ -48,12 +35,6 @@ SendPropExclude("DT_BaseAnimating", "m_nMuzzleFlashParity"), SendPropInt(SENDINF
     SendPropInt(SENDINFO(m_afButtonDisabled)),
     SendPropDataTable(SENDINFO_DT(m_RunData), &REFERENCE_SEND_TABLE(DT_MOM_RunEntData)),
     SendPropDataTable(SENDINFO_DT(m_RunStats), &REFERENCE_SEND_TABLE(DT_MOM_RunStats)),
-    SendPropDataTable(SENDINFO_DT(m_Timer), &REFERENCE_SEND_TABLE(DT_MOM_RunStats)),
-END_SEND_TABLE();
-
-IMPLEMENT_SERVERCLASS_ST(CMomentumPlayer, DT_MOM_Player_Parent)
-
-SendPropDataTable("DT_MOM_Player", 0, &REFERENCE_SEND_TABLE(DT_MOM_Player), SendProxy_SendPlayer)
 
 END_SEND_TABLE();
 
