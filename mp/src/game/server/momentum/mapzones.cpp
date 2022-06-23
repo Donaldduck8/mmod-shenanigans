@@ -34,7 +34,9 @@ CMapzone::~CMapzone()
     }
 }
 
-CMapzone::CMapzone(const int pType, Vector* pPos, QAngle* pRot, Vector* pScaleMins,
+CMapzoneData::CMapzoneData() {}
+
+CMapzone::CMapzone(const int pType, Vector *pPos, QAngle *pRot, Vector *pScaleMins,
     Vector* pScaleMaxs, const int pIndex, const bool pShouldStop, const bool pShouldTilt,
     const float pHoldTime, const bool pLimitSpeed, const float pBhopLeaveSpeed, const float flYaw,
     const string_t pLinkedEnt, const bool pCheckOnlyXY)
@@ -326,6 +328,50 @@ void CMapzoneData::SpawnMapZones()
     }
 }
 
+void CMapzoneData::DrawMapZones() 
+{
+    for (int i = 0; i < m_zones.Count(); i++)
+    {
+        CMapzone *zone = m_zones[i];
+
+        Vector zonePosition = *zone->GetPosition();
+        Vector zoneScaleMins = *zone->GetScaleMins();
+        Vector zoneScaleMaxs = *zone->GetScaleMaxs();
+
+        Vector TopLeftBack = {zonePosition.x + zoneScaleMaxs.x, zonePosition.y + zoneScaleMaxs.y,
+                          zonePosition.z + zoneScaleMaxs.z};
+        Vector TopRightBack = {zonePosition.x + zoneScaleMins.x, zonePosition.y + zoneScaleMaxs.y,
+                              zonePosition.z + zoneScaleMaxs.z};
+        Vector BottomLeftBack = {zonePosition.x + zoneScaleMaxs.x, zonePosition.y + zoneScaleMaxs.y,
+                              zonePosition.z + zoneScaleMins.z};
+        Vector BottomRightBack = {zonePosition.x + zoneScaleMins.x, zonePosition.y + zoneScaleMaxs.y,
+                               zonePosition.z + zoneScaleMins.z};
+
+        Vector TopLeftFront = {zonePosition.x + zoneScaleMaxs.x, zonePosition.y + zoneScaleMins.y,
+                              zonePosition.z + zoneScaleMaxs.z};
+        Vector TopRightFront = {zonePosition.x + zoneScaleMins.x, zonePosition.y + zoneScaleMins.y,
+                               zonePosition.z + zoneScaleMaxs.z};
+        Vector BottomLeftFront = {zonePosition.x + zoneScaleMaxs.x, zonePosition.y + zoneScaleMins.y,
+                               zonePosition.z + zoneScaleMins.z};
+        Vector BottomRightFront = {zonePosition.x + zoneScaleMins.x, zonePosition.y + zoneScaleMins.y,
+                                   zonePosition.z + zoneScaleMins.z};
+
+        DebugDrawLine(TopLeftBack, TopRightBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(BottomLeftBack, BottomRightBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopLeftBack, BottomLeftBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopRightBack, BottomRightBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopLeftFront, TopRightFront, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(BottomLeftFront, BottomRightFront, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopLeftFront, BottomLeftFront, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopRightFront, BottomRightFront, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopLeftFront, TopLeftBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(BottomLeftFront, BottomLeftBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(TopRightFront, TopRightBack, 255, 255, 255, false, -1.0f);
+        DebugDrawLine(BottomRightFront, BottomRightBack, 255, 255, 255, false, -1.0f);
+    }
+}
+
+
 bool CMapzoneData::LoadFromFile(const char *szMapName)
 {
     bool toReturn = false;
@@ -421,6 +467,7 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
             m_zones.AddToTail(new CMapzone(zoneType, pos, rot, scaleMins, scaleMaxs, index, shouldStop, shouldTilt,
                 holdTime, limitingspeed, bhopleavespeed, start_yaw, MAKE_STRING(linkedtrigger), checkonlyxy));
         }
+
         DevLog("Successfully loaded map zone file %s!\n", zoneFilePath);
         toReturn = true;
     }
@@ -460,3 +507,5 @@ bool ZoneTypeToClass( int type, char *dest )
 
     return false;
 }
+
+CMapzoneData g_Mapzones;

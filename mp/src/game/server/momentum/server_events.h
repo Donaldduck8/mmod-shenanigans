@@ -8,6 +8,7 @@
 #include <movevars_shared.h>
 #include "mapzones.h"
 #include "mom_timer.h"
+#include "mapzones.h"
 #include "mapzones_edit.h"
 
 namespace Momentum {

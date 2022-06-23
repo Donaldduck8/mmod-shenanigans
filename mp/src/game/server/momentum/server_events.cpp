@@ -60,6 +60,8 @@ void CMOMServerEvents::LevelInitPreEntity()
         zones = nullptr;
     }
     zones = new CMapzoneData(pMapName);
+    g_Mapzones = *zones;
+
     zones->SpawnMapZones();
 }
 
@@ -97,6 +99,7 @@ void CMOMServerEvents::LevelShutdownPostEntity()
 
 void CMOMServerEvents::FrameUpdatePreEntityThink()
 {
+    g_Mapzones.DrawMapZones();
     g_MapzoneEdit.Update();
 
     if (!g_pMomentumTimer->GotCaughtCheating())

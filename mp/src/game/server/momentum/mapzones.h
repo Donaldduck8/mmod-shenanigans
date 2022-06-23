@@ -59,6 +59,8 @@ private:
 class CMapzoneData
 {
 public:
+    void DrawMapZones();
+    CMapzoneData();
     CMapzoneData(const char *szMapName);
     ~CMapzoneData();
 
@@ -73,5 +75,7 @@ private:
 };
 
 bool ZoneTypeToClass(int type, char *dest);
+
+extern CMapzoneData g_Mapzones;
 
 #endif
