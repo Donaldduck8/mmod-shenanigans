@@ -99,13 +99,18 @@ void CMOMServerEvents::FrameUpdatePreEntityThink()
 {
     g_MapzoneEdit.Update();
 
-    if (!g_pMomentumTimer->GotCaughtCheating())
+    for (int i = 1; i <= gpGlobals->maxClients; i++)
     {
-        ConVarRef cheatsRef("sv_cheats");
-        if (cheatsRef.GetBool())
+        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+
+        if (!g_pMomentumTimer->GotCaughtCheating())
         {
-            g_pMomentumTimer->SetCheating(true);
-            g_pMomentumTimer->Stop(false);
+            ConVarRef cheatsRef("sv_cheats");
+            if (cheatsRef.GetBool())
+            {
+                g_pMomentumTimer->SetCheating(pPlayer, true);
+                g_pMomentumTimer->Stop(pPlayer, false);
+            }
         }
     }
 }

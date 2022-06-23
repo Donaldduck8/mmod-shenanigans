@@ -30,8 +30,6 @@ void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
 {
     IGameEvent *replaySavedEvent = gameeventmanager->CreateEvent("replay_save");
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
-
     if (throwaway && replaySavedEvent)
     {
         replaySavedEvent->SetBool("save", false);
@@ -39,16 +37,16 @@ void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
         m_pReplayManager->StopRecording();
 
         // Re-allow the player to teleport
-        if (pPlayer)
-            pPlayer->m_bAllowUserTeleports = true;
+        if (m_player)
+            m_player->m_bAllowUserTeleports = true;
         return;
     }
 
     if (delay)
     {
         // Prevent the user from teleporting, potentially breaking this delay
-        if (pPlayer)
-            pPlayer->m_bAllowUserTeleports = false;
+        if (m_player)
+            m_player->m_bAllowUserTeleports = false;
 
         m_bShouldStopRec = true;
         m_fRecEndTime = gpGlobals->curtime + END_RECORDING_DELAY;
@@ -60,8 +58,8 @@ void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
     m_bShouldStopRec = false;
 
     // Don't ask why, but these need to be formatted in their own strings.
-    Q_snprintf(runDate, MAX_PATH, "%li", g_pMomentumTimer->GetLastRunDate());
-    Q_snprintf(runTime, MAX_PATH, "%.3f", g_pMomentumTimer->GetLastRunTime());
+    Q_snprintf(runDate, MAX_PATH, "%li", g_pMomentumTimer->GetLastRunDate(m_player));
+    Q_snprintf(runTime, MAX_PATH, "%.3f", g_pMomentumTimer->GetLastRunTime(m_player));
     // It's weird.
 
     Q_snprintf(newRecordingName, MAX_PATH, "%s-%s-%s%s", gpGlobals->mapname.ToCStr(), runDate, runTime, EXT_RECORDING_FILE);
@@ -87,8 +85,8 @@ void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
     Log("Recording Stopped! Ticks: %i\n", postTrimTickCount);
 
     // Re-allow the player to teleport
-    if (pPlayer)
-        pPlayer->m_bAllowUserTeleports = true;
+    if (m_player)
+        m_player->m_bAllowUserTeleports = true;
     
     if (replaySavedEvent)
     {
@@ -154,9 +152,9 @@ void CMomentumReplaySystem::SetReplayInfo()
     ISteamUser *pUser = steamapicontext->SteamUser();
     replay->SetPlayerSteamID(pUser ? pUser->GetSteamID().ConvertToUint64() : 0);
     replay->SetTickInterval(gpGlobals->interval_per_tick);
-    replay->SetRunTime(g_pMomentumTimer->GetLastRunTime());
+    replay->SetRunTime(g_pMomentumTimer->GetLastRunTime(m_player));
     replay->SetRunFlags(m_player->m_RunData.m_iRunFlags);
-    replay->SetRunDate(g_pMomentumTimer->GetLastRunDate());
+    replay->SetRunDate(g_pMomentumTimer->GetLastRunDate(m_player));
     replay->SetStartTick(m_iStartTimerTick - m_iStartRecordingTick);
 }
 

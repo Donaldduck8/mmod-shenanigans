@@ -63,7 +63,8 @@ void CMomReplayV1::Start(bool firstperson)
     if (m_pEntity)
     {
         if (firstperson)
-            g_pMomentumTimer->Stop(false); // stop the timer just in case we started a replay while it was running...
+            g_pMomentumTimer->Stop(ToCMOMPlayer(UTIL_GetLocalPlayer()),
+                                   false); // stop the timer just in case we started a replay while it was running...
 
         m_pEntity->StartRun(firstperson);
         g_ReplaySystem->GetReplayManager()->SetPlayingBack(true);

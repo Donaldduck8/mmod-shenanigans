@@ -27,7 +27,7 @@ class CMomentumTimer : CAutoGameSystem
 {
   public:
       CMomentumTimer(const char *pName)
-        : CAutoGameSystem(pName), m_iZoneCount(0), m_iStartTick(0), m_iEndTick(0), m_iLastZone(0), m_iLastRunDate(0), m_bIsRunning(false),
+        : CAutoGameSystem(pName), m_iZoneCount(0), m_iLastZone(0),
           m_bWereCheatsActivated(false), m_bMapIsLinear(false), m_pStartTrigger(nullptr), m_pEndTrigger(nullptr),
           m_pCurrentCheckpoint(nullptr), m_pCurrentZone(nullptr), m_pLocalTimes(nullptr), m_pStartZoneMark(nullptr)
     {
@@ -40,13 +40,23 @@ class CMomentumTimer : CAutoGameSystem
 
     // ------------- Timer state related messages --------------------------
     // Strats the timer for the given starting tick
-    void Start(int startTick);
+    void Start(CMomentumPlayer *player, int startTick);
     // Stops the timer
-    void Stop(bool = false);
+    void Stop(CMomentumPlayer *player, bool = false);
     // Is the timer running?
-    bool IsRunning() const { return m_bIsRunning; }
+    bool IsRunning(CMomentumPlayer *pPlayer) const
+    {
+        if (pPlayer)
+        {
+            return pPlayer->m_RunData.m_bIsRunning;
+        }
+        else
+        {
+            return false;
+        }
+    }
     // Set the running status of the timer
-    void SetRunning(bool running);
+    void SetRunning(CMomentumPlayer *pPlayer, bool running);
 
     // ------------- Timer trigger related methods ----------------------------
     // Gets the current starting trigger
@@ -80,25 +90,29 @@ class CMomentumTimer : CAutoGameSystem
     void RequestZoneCount();
     // Gets the total stage count
     int GetZoneCount() const { return m_iZoneCount; };
-    float CalculateStageTime(int stageNum);
+    float CalculateStageTime(CMomentumPlayer *pPlayer, int stageNum);
     // Gets the time for the last run, if there was one
-    float GetLastRunTime()
+    float GetLastRunTime(CMomentumPlayer *player)
     {
-        if (m_iEndTick == 0)
+        if (player->m_RunData.m_iEndTick == 0)
             return 0.0f;
-        float originalTime = static_cast<float>(m_iEndTick - m_iStartTick) * gpGlobals->interval_per_tick;
+        float originalTime = static_cast<float>(player->m_RunData.m_iEndTick - player->m_RunData.m_iStartTick) *
+                             gpGlobals->interval_per_tick;
         // apply precision fix, adding offset from start as well as subtracting offset from end.
         // offset from end is 1 tick - fraction offset, since we started trace outside of the end zone.
         return originalTime + m_flTickOffsetFix[1] - (gpGlobals->interval_per_tick - m_flTickOffsetFix[0]);
     }
     // Gets the date achieved for the last run.
-    time_t GetLastRunDate() const
-    {
-        return m_iLastRunDate;
+    time_t GetLastRunDate(CMomentumPlayer *pPlayer) const
+    { 
+        return pPlayer->m_RunData.m_iLastRunDate;
     }
 
     // Gets the current time for this timer
-    float GetCurrentTime() const { return float(gpGlobals->tickcount - m_iStartTick) * gpGlobals->interval_per_tick; }
+    float GetCurrentTime(CMomentumPlayer *pPlayer) const
+    {
+        return float(gpGlobals->tickcount - pPlayer->m_RunData.m_iStartTick) * gpGlobals->interval_per_tick;
+    }
 
     //----- Trigger_Onehop stuff -----------------------------------------
     // Removes the given Onehop form the hopped list.
@@ -131,12 +145,13 @@ class CMomentumTimer : CAutoGameSystem
 
     // Have the cheats been turned on in this session?
     bool GotCaughtCheating() const { return m_bWereCheatsActivated; };
-    void SetCheating(bool newBool)
+    void SetCheating(CMomentumPlayer *pPlayer, bool newBool)
     {
         UTIL_ShowMessage("CHEATER", UTIL_GetLocalPlayer());
-        Stop(false);
+        Stop(pPlayer, false);
         m_bWereCheatsActivated = newBool;
     }
+    
 
     void SetGameModeConVars();
 
@@ -146,10 +161,7 @@ class CMomentumTimer : CAutoGameSystem
 
   private:
     int m_iZoneCount;
-    int m_iStartTick, m_iEndTick;
     int m_iLastZone;
-    time_t m_iLastRunDate;
-    bool m_bIsRunning;
     bool m_bWereCheatsActivated;
     bool m_bMapIsLinear;
 
@@ -178,6 +190,9 @@ public:
     void SetIntervalOffset(int stage, float offset) { m_flTickOffsetFix[stage] = offset; }
     float m_flDistFixTraceCorners[8]; //array of floats representing the trace distance from each corner of the player's collision hull
     typedef enum { ZONETYPE_END, ZONETYPE_START } zoneType;
+
+    //int ShouldTransmit(const CCheckTransmitInfo *pInfo);
+    //int UpdateTransmitState() OVERRIDE { return SetTransmitState(FL_EDICT_FULLCHECK); }
 };
 
 class CTimeTriggerTraceEnum : public IEntityEnumerator

@@ -61,6 +61,8 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
     DECLARE_DATADESC();
 
     CMomentumPlayer();
+    void *SendProxy_SendRunEntData(const SendProp *pProp, const void *pStruct, const void *pVarData,
+                                   CSendProxyRecipients *pRecipients, int objectID);
     ~CMomentumPlayer(void);
 
     static CMomentumPlayer *CreatePlayer(const char *className, edict_t *ed)
@@ -264,6 +266,8 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
     int m_nTicksInAir;
 
     float m_flTweenVelValue;
+
+    int m_iClientIndex;
 
     // Trail pointer
     CBaseEntity* m_eTrail;
