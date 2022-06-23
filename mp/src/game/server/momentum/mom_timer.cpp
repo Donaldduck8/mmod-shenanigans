@@ -4,6 +4,30 @@
 #include "mom_timer.h"
 
 #include "tier0/memdbgon.h"
+/*
+BEGIN_SEND_TABLE(CMomentumTimer, DT_MOM_Timer)
+SendPropInt(SENDINFO(m_iZoneCount)), 
+SendPropInt(SENDINFO(m_iStartTick)), 
+    SendPropInt(SENDINFO(m_iEndTick)), 
+    SendPropInt(SENDINFO(m_iLastZone)),
+    SendPropInt(SENDINFO(m_iLastRunDate)), 
+    SendPropBool(SENDINFO(m_bIsRunning)),
+    SendPropBool(SENDINFO(m_bWereCheatsActivated)), 
+    SendPropBool(SENDINFO(m_bMapIsLinear)),
+    SendPropEHandle(SENDINFO(m_pStartTrigger)), 
+    SendPropEHandle(SENDINFO(m_pEndTrigger)),
+    SendPropEHandle(SENDINFO(m_pCurrentCheckpoint)),
+    SendPropEHandle(SENDINFO(m_pCurrentZone)),
+    SendPropEHandle(SENDINFO(m_pLocalTimes)), 
+    SendPropEHandle(SENDINFO(m_pStartZoneMark)),
+    END_SEND_TABLE();
+
+IMPLEMENT_SERVERCLASS_ST(CMomentumPlayer, DT_MOM_Player_Parent)
+
+SendPropDataTable("DT_MOM_Player", 0, &REFERENCE_SEND_TABLE(DT_MOM_Player), SendProxy_SendPlayer)
+
+    END_SEND_TABLE();
+    */
 
 void CMomentumTimer::Start(int start)
 {
@@ -566,6 +590,3 @@ static ConCommand mom_reset_to_checkpoint("mom_reset", CTimerCommands::ResetToCh
 static ConCommand mom_stage_tele("mom_stage_tele", CTimerCommands::TeleToStage,
                                  "Teleports the player to the desired stage. Stops the timer (Useful for mappers)\n",
                                  FCVAR_CLIENTCMD_CAN_EXECUTE | FCVAR_SERVER_CAN_EXECUTE);
-
-static CMomentumTimer s_Timer("CMomentumTimer");
-CMomentumTimer *g_pMomentumTimer = &s_Timer;

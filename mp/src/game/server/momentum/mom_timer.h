@@ -16,6 +16,7 @@
 #include "momentum/mom_gamerules.h"
 #include "mom_replay_system.h"
 #include "movevars_shared.h"
+#include "networkvar.h" //TRIKZ ADDED
 #include <ctime>
 
 class CTriggerTimerStart;
@@ -26,12 +27,15 @@ class CTriggerStage;
 class CMomentumTimer : CAutoGameSystem
 {
   public:
+    //CMomentumTimer(char const *pName) : CAutoGameSystem(pName) {}
+    
       CMomentumTimer(const char *pName)
         : CAutoGameSystem(pName), m_iZoneCount(0), m_iStartTick(0), m_iEndTick(0), m_iLastZone(0), m_iLastRunDate(0), m_bIsRunning(false),
           m_bWereCheatsActivated(false), m_bMapIsLinear(false), m_pStartTrigger(nullptr), m_pEndTrigger(nullptr),
           m_pCurrentCheckpoint(nullptr), m_pCurrentZone(nullptr), m_pLocalTimes(nullptr), m_pStartZoneMark(nullptr)
     {
     }
+    
 
     //-------- HUD Messages --------------------
     void DispatchResetMessage();
@@ -195,7 +199,4 @@ class CTimeTriggerTraceEnum : public IEntityEnumerator
     int m_iCornerNumber;
     Ray_t *m_pRay;
 };
-
-extern CMomentumTimer *g_pMomentumTimer;
-
 #endif // TIMER_H

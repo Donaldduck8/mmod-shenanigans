@@ -4,7 +4,7 @@
 #include "tier0/memdbgon.h"
 
 
-IMPLEMENT_CLIENTCLASS_DT(C_MomentumPlayer, DT_MOM_Player, CMomentumPlayer)
+BEGIN_RECV_TABLE(C_MomentumPlayer, DT_MOM_Player)
 RecvPropInt(RECVINFO(m_iShotsFired)),
 RecvPropInt(RECVINFO(m_iDirection)),
 RecvPropBool(RECVINFO(m_bResumeZoom)),
@@ -19,6 +19,10 @@ RecvPropInt(RECVINFO(m_afButtonDisabled)),
 RecvPropInt(RECVINFO(m_fSliding)),
 RecvPropDataTable(RECVINFO_DT(m_RunData), SPROP_PROXY_ALWAYS_YES, &REFERENCE_RECV_TABLE(DT_MOM_RunEntData)),
 RecvPropDataTable(RECVINFO_DT(m_RunStats), SPROP_PROXY_ALWAYS_YES, &REFERENCE_RECV_TABLE(DT_MOM_RunStats)),
+END_RECV_TABLE();
+
+IMPLEMENT_CLIENTCLASS_DT(C_MomentumPlayer, DT_MOM_Player_Parent, CMomentumPlayer)
+RecvPropDataTable("DT_MOM_Player", 0, 0, &REFERENCE_RECV_TABLE(DT_MOM_Player)) 
 END_RECV_TABLE();
 
 BEGIN_PREDICTION_DATA(C_MomentumPlayer)
