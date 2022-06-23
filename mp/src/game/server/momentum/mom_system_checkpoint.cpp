@@ -102,7 +102,7 @@ CON_COMMAND_F(mom_checkpoint_create, "Creates a checkpoint that saves a player's
 {
     CheckTimer();
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer)
     {
         pPlayer->CreateAndSaveCheckpoint();
@@ -113,7 +113,7 @@ CON_COMMAND_F(mom_checkpoint_prev, "Teleports the player to their most recent ch
 {
     CheckTimer();
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer)
     {
         pPlayer->TeleportToCurrentCP();
@@ -123,7 +123,7 @@ CON_COMMAND_F(mom_checkpoint_nav_next, "Goes forwards through the checkpoint lis
 {
     CheckTimer();
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer && pPlayer->GetCPCount() > 0)
     {
         pPlayer->SetCurrentCPMenuStep((pPlayer->GetCurrentCPMenuStep() + 1) % pPlayer->GetCPCount());
@@ -134,7 +134,7 @@ CON_COMMAND_F(mom_checkpoint_nav_prev, "Goes backwards through the checkpoint li
 {
     CheckTimer();
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer && pPlayer->GetCPCount() > 0)
     {
         pPlayer->SetCurrentCPMenuStep(pPlayer->GetCurrentCPMenuStep() == 0 ? pPlayer->GetCPCount() - 1 : pPlayer->GetCurrentCPMenuStep() - 1);
@@ -145,7 +145,7 @@ CON_COMMAND_F(mom_checkpoint_remove_prev, "Removes the previously created checkp
 {
     CheckTimer();
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer)
     {
         pPlayer->RemoveLastCheckpoint();
@@ -155,7 +155,7 @@ CON_COMMAND_F(mom_checkpoint_remove_all, "Removes all of the created checkpoints
 {
     CheckTimer();
 
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer)
     {
         pPlayer->RemoveAllCheckpoints();
@@ -163,7 +163,7 @@ CON_COMMAND_F(mom_checkpoint_remove_all, "Removes all of the created checkpoints
 }
 CON_COMMAND_F(mom_checkpoint_close, "Closes the checkpoint menu.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
     if (pPlayer)
     {
         pPlayer->SetUsingCPMenu(false);

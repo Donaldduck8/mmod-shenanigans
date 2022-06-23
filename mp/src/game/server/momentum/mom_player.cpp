@@ -17,7 +17,7 @@
 
 CON_COMMAND(mom_strafesync_reset, "Reset the strafe sync. (works only when timer is disabled)\n")
 {
-    CMomentumPlayer *pPlayer = dynamic_cast<CMomentumPlayer *>(UTIL_GetLocalPlayer());
+    CMomentumPlayer *pPlayer = dynamic_cast<CMomentumPlayer *>(UTIL_GetCommandClient());
 
     if (pPlayer && !g_pMomentumTimer->IsRunning())
     {
