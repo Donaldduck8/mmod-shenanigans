@@ -5,28 +5,24 @@
 
 #include "tier0/memdbgon.h"
 
-void CMomentumTimer::Start(CMomentumPlayer *pPlayer, int start)
+void CMomentumTimer::Start(int start)
 {
-    Msg("Current EntIndex %i\n", pPlayer->entindex());
-
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (!pPlayer)
         return;
-
     // MOM_TODO: Allow it based on gametype
     if (pPlayer->m_bUsingCPMenu)
         return;
-
     if (ConVarRef("mom_zone_edit").GetBool())
         return;
-
-    pPlayer->m_RunData.m_iStartTick = start;
-    pPlayer->m_RunData.m_iEndTick = 0;
-    pPlayer->m_RunData.m_iLastRunDate = 0;
-
-    SetRunning(pPlayer, true);
+    m_iStartTick = start;
+    m_iEndTick = 0;
+    m_iLastRunDate = 0;
+    SetRunning(true);
 
     // Dispatch a start timer message for the local player
-    DispatchTimerStateMessage(pPlayer, pPlayer->m_RunData.m_bIsRunning);
+    DispatchTimerStateMessage(pPlayer, m_bIsRunning);
+
     IGameEvent *timeStartEvent = gameeventmanager->CreateEvent("timer_state");
 
     if (timeStartEvent)
@@ -37,19 +33,41 @@ void CMomentumTimer::Start(CMomentumPlayer *pPlayer, int start)
     }
 }
 
-void CMomentumTimer::Stop(CMomentumPlayer *pPlayer, bool endTrigger /* = false */)
+////MOM_TODO: REMOVEME
+// CON_COMMAND(mom_test_hash, "Tests SHA1 Hashing\n")
+//{
+//    char pathToZone[MAX_PATH];
+//    char mapName[MAX_PATH];
+//    V_ComposeFileName("maps", gpGlobals->mapname.ToCStr(), mapName, MAX_PATH);
+//    Q_strncat(mapName, ".zon", MAX_PATH);
+//    filesystem->RelativePathToFullPath(mapName, "MOD", pathToZone, MAX_PATH);
+//    Log("File path is: %s\n", pathToZone);
+//
+//    CSHA1 sha1;
+//    sha1.HashFile(pathToZone);
+//    sha1.Final();
+//    unsigned char hash[20];
+//    sha1.GetHash(hash);
+//    Log("The hash for %s is: ", mapName);
+//    for (int i = 0; i < 20; i++)
+//    {
+//        Log("%02x", hash[i]);
+//    }
+//    Log("\n");
+//}
+
+void CMomentumTimer::Stop(bool endTrigger /* = false */)
 {
-    //IGameEvent *timerStateEvent = gameeventmanager->CreateEvent("timer_state");
-    
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    IGameEvent *timerStateEvent = gameeventmanager->CreateEvent("timer_state");
+
     if (pPlayer)
     {
-        /*
         // Set our end time and date
         if (endTrigger && !m_bWereCheatsActivated)
         {
-            pPlayer->m_RunData.m_iEndTick = gpGlobals->tickcount;
-            // TODO: TRIKZ KEN DONALD THIS MAY CRASH??? IDK COME BACK TO THIS PLEASE
-            time(&pPlayer->m_RunData.m_iLastRunDate.GetForModify()); // Set the last run date for the replay
+            m_iEndTick = gpGlobals->tickcount;
+            time(&m_iLastRunDate); // Set the last run date for the replay
         }
 
         // Fire off the timer_state event
@@ -59,17 +77,14 @@ void CMomentumTimer::Stop(CMomentumPlayer *pPlayer, bool endTrigger /* = false *
             timerStateEvent->SetBool("is_running", false);
             gameeventmanager->FireEvent(timerStateEvent);
         }
-        
-        // Stop replay recording, if there was any
-        if (g_ReplaySystem->GetReplayManager()->Recording())
-            g_ReplaySystem->StopRecording(!endTrigger || m_bWereCheatsActivated, endTrigger);
-        
-        SetRunning(pPlayer, false);
-        DispatchTimerStateMessage(pPlayer, pPlayer->m_RunData.m_bIsRunning);
-        Msg("WE GOT TO THE END OF THIS FUNC WITHOUT DEATH");
-        */
-        SetRunning(pPlayer, false);
     }
+
+    // Stop replay recording, if there was any
+    if (g_ReplaySystem->GetReplayManager()->Recording())
+        g_ReplaySystem->StopRecording(!endTrigger || m_bWereCheatsActivated, endTrigger);
+
+    SetRunning(false);
+    DispatchTimerStateMessage(pPlayer, m_bIsRunning);
 }
 
 void CMomentumTimer::DispatchMapInfo() const
@@ -95,13 +110,8 @@ void CMomentumTimer::LevelInitPostEntity()
 
 void CMomentumTimer::LevelShutdownPreEntity()
 {
-    for (int i = 1; i <= gpGlobals->maxClients; i++)
-    {
-        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
-        if (IsRunning(pPlayer))
-            Stop(pPlayer, false);
-    }
-
+    if (IsRunning())
+        Stop(false);
     m_bWereCheatsActivated = false;
     SetCurrentCheckpointTrigger(nullptr);
     SetStartTrigger(nullptr);
@@ -125,11 +135,11 @@ void CMomentumTimer::RequestZoneCount()
     m_iZoneCount = iCount;
 }
 // This function is called every time CTriggerStage::StartTouch is called
-float CMomentumTimer::CalculateStageTime(CMomentumPlayer *pPlayer, int stage)
+float CMomentumTimer::CalculateStageTime(int stage)
 {
     if (stage > m_iLastZone)
     {
-        float originalTime = GetCurrentTime(pPlayer);
+        float originalTime = GetCurrentTime();
         // If the stage is a new one, we store the time we entered this stage in
         m_flZoneEnterTime[stage] = stage == 1 ? 0.0f : // Always returns 0 for first stage.
                                        originalTime + m_flTickOffsetFix[stage - 1];
@@ -158,12 +168,14 @@ void CMomentumTimer::DispatchTimerStateMessage(CBasePlayer *pPlayer, bool isRunn
     }
 }
 
-void CMomentumTimer::SetRunning(CMomentumPlayer *pPlayer, bool isRunning)
+void CMomentumTimer::SetRunning(bool isRunning)
 {
-    // DONALD KEN TODO TRIKZ OMG
-    //pPlayer->m_RunData.m_iPlayerIndex = pPlayer->entindex() - 1;
-    pPlayer->m_RunData.m_bIsRunning = isRunning;
-    pPlayer->m_RunData.m_bTimerRunning = isRunning; //Why does commenting this out do nothing??
+    m_bIsRunning = isRunning;
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    if (pPlayer)
+    {
+        pPlayer->m_RunData.m_bTimerRunning = isRunning;
+    }
 }
 void CMomentumTimer::CalculateTickIntervalOffset(CMomentumPlayer *pPlayer, const int zoneType)
 {
@@ -371,7 +383,7 @@ void CMomentumTimer::EnablePractice(CMomentumPlayer *pPlayer)
     ClientPrint(pPlayer, HUD_PRINTCONSOLE, "Practice mode ON!\n");
     pPlayer->AddEFlags(EFL_NOCLIP_ACTIVE);
     pPlayer->m_bHasPracticeMode = true;
-    Stop(pPlayer, false);
+    Stop(false);
 }
 void CMomentumTimer::DisablePractice(CMomentumPlayer *pPlayer)
 {
@@ -470,7 +482,7 @@ class CTimerCommands
 
     static void TeleToStage(const CCommand &args)
     {
-        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
         const Vector *pVec = nullptr;
         const QAngle *pAng = nullptr;
         if (pPlayer && args.ArgC() >= 2)
@@ -524,7 +536,7 @@ class CTimerCommands
                 // Untouch our triggers
                 pPlayer->PhysicsCheckForEntityUntouch();
                 // Stop *after* the teleport
-                g_pMomentumTimer->Stop(pPlayer);
+                g_pMomentumTimer->Stop();
             } 
             else
             {

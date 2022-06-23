@@ -2,16 +2,15 @@
 
 #include "cbase.h"
 
-
 //This class handles networking all of the overlap between players and 
 //replay files. From an OOP standpoint, this is more efficient than having
 //two classes network the same variables.
 
 #ifdef CLIENT_DLL 
 #define CMOMRunEntityData C_MOMRunEntityData
-EXTERN_RECV_TABLE(DT_MOM_RunEntData_Parent);
+EXTERN_RECV_TABLE(DT_MOM_RunEntData);
 #else
-EXTERN_SEND_TABLE(DT_MOM_RunEntData_Parent);
+EXTERN_SEND_TABLE(DT_MOM_RunEntData);
 #endif
 
 class CMOMRunEntityData
@@ -25,33 +24,26 @@ public:
 #ifdef GAME_DLL
 
     CNetworkVar(bool, m_bAutoBhop);// Is the player using auto bhop?
-    CNetworkVar(int, m_iSuccessiveBhops); // How many successive bhops this player has
-    CNetworkVar(float, m_flStrafeSync); // eyeangle based, perfect strafes / total strafes
-    CNetworkVar(float, m_flStrafeSync2); // acceleration based, strafes speed gained / total strafes
-    CNetworkVar(float, m_flLastJumpTime); // The last time that the player jumped
-    CNetworkVar(float, m_flLastJumpVel); // Last jump velocity of the player
-    CNetworkVar(uint32, m_iRunFlags);// The run flags (W only/HSW/Scroll etc) of the player
-    CNetworkVar(bool, m_bIsInZone);// This is true if the player is in a CTriggerTimerStage zone
-    CNetworkVar(bool, m_bMapFinished);// Did the player finish the map?
-    CNetworkVar(int, m_iCurrentZone);// Current stage/checkpoint the player is on
-    CNetworkVar(bool, m_bTimerRunning);// Is the timer currently running for this ent?
-    CNetworkVar(int, m_iStartTick); // Tick that the entity started its timer
-    CNetworkVar(int, m_iEndTick);    // Tick that the entity ended its timer
-    CNetworkVar(time_t, m_iLastRunDate); // ??
-    CNetworkVar(bool, m_bIsRunning) // Is the player currently on a run?
-	CNetworkVar(int, m_iStartTickD); // The tick difference between timer and record
-    CNetworkVar(float, m_flRunTime); // The time taken to do their most recent run
-    CNetworkVar(int, m_iPlayerIndex);
-    CNetworkVar(int, m_iLastZone);
-    //CMomentumPlayer *parent;
+    CNetworkVar(int, m_iSuccessiveBhops); //How many successive bhops this player has
+    CNetworkVar(float, m_flStrafeSync); //eyeangle based, perfect strafes / total strafes
+    CNetworkVar(float, m_flStrafeSync2); //acceleration based, strafes speed gained / total strafes
+    CNetworkVar(float, m_flLastJumpTime); //The last time that the player jumped
+    CNetworkVar(float, m_flLastJumpVel); //Last jump velocity of the player
+    CNetworkVar(uint32, m_iRunFlags);//The run flags (W only/HSW/Scroll etc) of the player
+    CNetworkVar(bool, m_bIsInZone);//This is true if the player is in a CTriggerTimerStage zone
+    CNetworkVar(bool, m_bMapFinished);//Did the player finish the map?
+    CNetworkVar(int, m_iCurrentZone);//Current stage/checkpoint the player is on
+    CNetworkVar(bool, m_bTimerRunning);//Is the timer currently running for this ent?
+    CNetworkVar(int, m_iStartTick); //Tick that the entity started its timer
+	CNetworkVar(int, m_iStartTickD); //The tick difference between timer and record
+    CNetworkVar(float, m_flRunTime); //The time taken to do their most recent run
 
 #elif defined CLIENT_DLL
 
-    bool m_bAutoBhop, m_bIsInZone, m_bMapFinished, m_bTimerRunning, m_bIsRunning;
+    bool m_bAutoBhop, m_bIsInZone, m_bMapFinished, m_bTimerRunning;
     float m_flStrafeSync, m_flStrafeSync2, m_flLastJumpVel, m_flLastJumpTime, m_flRunTime;
-    int m_iSuccessiveBhops, m_iCurrentZone, m_iStartTick, m_iStartTickD, m_iEndTick, m_iPlayerIndex, m_iLastZone;
+	int m_iSuccessiveBhops, m_iCurrentZone, m_iStartTick, m_iStartTickD;
     uint32 m_iRunFlags;
-    //CMomentumPlayer *parent;
 
 #endif
 };

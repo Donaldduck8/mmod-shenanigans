@@ -69,9 +69,9 @@ void CMOMCheckpointSystem::LoadMapCheckpoints(CMomentumPlayer* pPlayer) const
     }
 }
 
-inline void CheckTimer(CMomentumPlayer *pPlayer)
-{ 
-    if (g_pMomentumTimer->IsRunning(pPlayer))
+inline void CheckTimer()
+{
+    if (g_pMomentumTimer->IsRunning())
     {
         // MOM_TODO: consider
         // 1. having a local timer running, as people may want to time their routes they're using CP menu for
@@ -83,7 +83,7 @@ inline void CheckTimer(CMomentumPlayer *pPlayer)
         case MOMGM_SURF:
         case MOMGM_BHOP:
         case MOMGM_SCROLL:
-            g_pMomentumTimer->Stop(pPlayer, false);
+            g_pMomentumTimer->Stop(false);
 
             //case MOMGM_KZ:
         default:
@@ -91,94 +91,74 @@ inline void CheckTimer(CMomentumPlayer *pPlayer)
         }
     }
 
-    pPlayer->SetUsingCPMenu(true);
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    if (pPlayer)
+    {
+        pPlayer->SetUsingCPMenu(true);
+    }
 }
 
 CON_COMMAND_F(mom_checkpoint_create, "Creates a checkpoint that saves a player's state.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
-    
+    CheckTimer();
+
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer)
     {
-        CheckTimer(pPlayer);
         pPlayer->CreateAndSaveCheckpoint();
-    }
-    else
-    {
-        Msg("mom_system_checkpoint.cpp; mom_checkpoint_create; line 108: pPlayer IS NULL");
     }
 }
 
 CON_COMMAND_F(mom_checkpoint_prev, "Teleports the player to their most recent checkpoint.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+    CheckTimer();
 
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer)
     {
-        CheckTimer(pPlayer);
         pPlayer->TeleportToCurrentCP();
-    }
-    else
-    {
-        Msg("mom_system_checkpoint.cpp; mom_checkpoint_prev; line 123: pPlayer IS NULL");
     }
 }
 CON_COMMAND_F(mom_checkpoint_nav_next, "Goes forwards through the checkpoint list, while teleporting the player to each.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+    CheckTimer();
 
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer && pPlayer->GetCPCount() > 0)
     {
-        CheckTimer(pPlayer);
         pPlayer->SetCurrentCPMenuStep((pPlayer->GetCurrentCPMenuStep() + 1) % pPlayer->GetCPCount());
         pPlayer->TeleportToCurrentCP();
-    }
-    else
-    {
-        Msg("mom_system_checkpoint.cpp; mom_checkpoint_nav_next; line 138: pPlayer IS NULL");
     }
 }
 CON_COMMAND_F(mom_checkpoint_nav_prev, "Goes backwards through the checkpoint list, while teleporting the player to each.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+    CheckTimer();
 
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer && pPlayer->GetCPCount() > 0)
     {
-        CheckTimer(pPlayer);
         pPlayer->SetCurrentCPMenuStep(pPlayer->GetCurrentCPMenuStep() == 0 ? pPlayer->GetCPCount() - 1 : pPlayer->GetCurrentCPMenuStep() - 1);
         pPlayer->TeleportToCurrentCP();
-    }
-    else
-    {
-        Msg("mom_system_checkpoint.cpp; mom_checkpoint_prev; line 153: pPlayer IS NULL");
     }
 }
 CON_COMMAND_F(mom_checkpoint_remove_prev, "Removes the previously created checkpoint.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+    CheckTimer();
 
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer)
     {
-        CheckTimer(pPlayer);
         pPlayer->RemoveLastCheckpoint();
-    }
-    else
-    {
-        Msg("mom_system_checkpoint.cpp; mom_checkpoint_remove_prev; line 167: pPlayer IS NULL");
     }
 }
 CON_COMMAND_F(mom_checkpoint_remove_all, "Removes all of the created checkpoints for this map.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+    CheckTimer();
 
+    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer)
     {
-        CheckTimer(pPlayer);
         pPlayer->RemoveAllCheckpoints();
-    }
-    else
-    {
-        Msg("mom_system_checkpoint.cpp; mom_checkpoint_remove_all; line 167: pPlayer IS NULL");
     }
 }
 CON_COMMAND_F(mom_checkpoint_close, "Closes the checkpoint menu.\n", FCVAR_CLIENTCMD_CAN_EXECUTE)

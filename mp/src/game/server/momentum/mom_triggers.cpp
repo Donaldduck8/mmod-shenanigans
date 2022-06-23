@@ -38,12 +38,12 @@ void CTriggerStage::StartTouch(CBaseEntity *pOther)
         pPlayer->m_RunData.m_bIsInZone = true;
         pPlayer->m_RunData.m_iCurrentZone = stageNum;
         stageEvent = gameeventmanager->CreateEvent("zone_enter");
-        if (g_pMomentumTimer->IsRunning(pPlayer))
+        if (g_pMomentumTimer->IsRunning())
         {
             pPlayer->m_RunStats.SetZoneExitSpeed(stageNum - 1, pPlayer->GetLocalVelocity().Length(),
                                                  pPlayer->GetLocalVelocity().Length2D());
             g_pMomentumTimer->CalculateTickIntervalOffset(pPlayer, g_pMomentumTimer->ZONETYPE_END);
-            pPlayer->m_RunStats.SetZoneEnterTime(stageNum, g_pMomentumTimer->CalculateStageTime(pPlayer, stageNum));
+            pPlayer->m_RunStats.SetZoneEnterTime(stageNum, g_pMomentumTimer->CalculateStageTime(stageNum));
             pPlayer->m_RunStats.SetZoneTime(stageNum - 1, pPlayer->m_RunStats.GetZoneEnterTime(stageNum) -
                                                               pPlayer->m_RunStats.GetZoneEnterTime(stageNum - 1));
         }
@@ -74,7 +74,7 @@ void CTriggerStage::EndTouch(CBaseEntity *pOther)
     if (pPlayer)
     {
         // Timer won't be running if it's the start trigger
-        if ((stageNum == 1 || g_pMomentumTimer->IsRunning(pPlayer)) && !pPlayer->m_bHasPracticeMode)
+        if ((stageNum == 1 || g_pMomentumTimer->IsRunning()) && !pPlayer->m_bHasPracticeMode)
         {
             // This handles both the start and stage triggers
             g_pMomentumTimer->CalculateTickIntervalOffset(pPlayer, g_pMomentumTimer->ZONETYPE_START);
@@ -128,8 +128,7 @@ void CTriggerTimerStart::EndTouch(CBaseEntity *pOther)
 
         // surf or other gamemodes has timer start on exiting zone, bhop timer starts when the player jumps
         // do not start timer if player is in practice mode or it's already running.
-        if (!g_pMomentumTimer->IsRunning(pPlayer) && !pPlayer->m_bHasPracticeMode && !bCheating &&
-            !pPlayer->IsUsingCPMenu())
+        if (!g_pMomentumTimer->IsRunning() && !pPlayer->m_bHasPracticeMode && !bCheating && !pPlayer->IsUsingCPMenu())
         {
             if (IsLimitingSpeed() && pPlayer->DidPlayerBhop())
             {
@@ -143,9 +142,9 @@ void CTriggerTimerStart::EndTouch(CBaseEntity *pOther)
                     pOther->SetAbsVelocity(Vector(vel2D.x, vel2D.y, velocity.z));
                 }
             }
-            g_pMomentumTimer->Start(pPlayer, gpGlobals->tickcount);
+            g_pMomentumTimer->Start(gpGlobals->tickcount);
             // The Start method could return if CP menu or prac mode is activated here
-            if (g_pMomentumTimer->IsRunning(pPlayer))
+            if (g_pMomentumTimer->IsRunning())
             {
                 // Used for trimming later on
                 if (g_ReplaySystem->GetReplayManager()->Recording())
@@ -153,7 +152,7 @@ void CTriggerTimerStart::EndTouch(CBaseEntity *pOther)
                     g_ReplaySystem->SetTimerStartTick(gpGlobals->tickcount);
                 }
 
-                pPlayer->m_RunData.m_bTimerRunning = g_pMomentumTimer->IsRunning(pPlayer);
+                pPlayer->m_RunData.m_bTimerRunning = g_pMomentumTimer->IsRunning();
                 // Used for spectating later on
                 pPlayer->m_RunData.m_iStartTick = gpGlobals->tickcount;
             }
@@ -198,7 +197,6 @@ void CTriggerTimerStart::StartTouch(CBaseEntity *pOther)
 {
     g_pMomentumTimer->SetStartTrigger(this);
     CMomentumPlayer *pPlayer = ToCMOMPlayer(pOther);
-
     if (pPlayer)
     {
         pPlayer->ResetRunStats(); // Reset run stats
@@ -207,13 +205,10 @@ void CTriggerTimerStart::StartTouch(CBaseEntity *pOther)
         pPlayer->m_RunData.m_bTimerRunning = false;
         pPlayer->m_RunData.m_flLastJumpVel = 0; // also reset last jump velocity when we enter the start zone
         pPlayer->m_RunData.m_flRunTime = 0.0f;  // MOM_TODO: Do we want to reset this?
-        Msg("MY PLAYER INDEX IS %i\n", pPlayer->entindex() - 1);
-        pPlayer->m_RunData.m_iPlayerIndex = (pPlayer->entindex()) - 1;
 
-        if (g_pMomentumTimer->IsRunning(pPlayer))
+        if (g_pMomentumTimer->IsRunning())
         {
-            Msg("pplayer %i, pother %i, \n", pPlayer->entindex(), pOther->entindex());
-            g_pMomentumTimer->Stop(pPlayer, false); // Handles stopping replay recording as well
+            g_pMomentumTimer->Stop(false); // Handles stopping replay recording as well
             g_pMomentumTimer->DispatchResetMessage();
             // lower the player's speed if they try to jump back into the start zone
         }
@@ -232,7 +227,6 @@ void CTriggerTimerStart::StartTouch(CBaseEntity *pOther)
     else
     {
         CMomentumReplayGhostEntity *pGhost = dynamic_cast<CMomentumReplayGhostEntity *>(pOther);
-        //g_pMomentumTimer->SetStartTrigger(pGhost, this);
         if (pGhost)
         {
             pGhost->m_RunData.m_bIsInZone = true;
@@ -302,7 +296,7 @@ void CTriggerTimerStop::StartTouch(CBaseEntity *pOther)
         CMomentumPlayer *pPlayer = ToCMOMPlayer(pOther);
 
         g_pMomentumTimer->SetEndTrigger(this);
-        if (g_pMomentumTimer->IsRunning(pPlayer) && !pPlayer->IsWatchingReplay())
+        if (g_pMomentumTimer->IsRunning() && !pPlayer->IsWatchingReplay())
         {
             int zoneNum = pPlayer->m_RunData.m_iCurrentZone;
 
@@ -323,7 +317,7 @@ void CTriggerTimerStop::StartTouch(CBaseEntity *pOther)
             }
 
             // This is needed for the final stage
-            pPlayer->m_RunStats.SetZoneTime(zoneNum, g_pMomentumTimer->GetCurrentTime(pPlayer) -
+            pPlayer->m_RunStats.SetZoneTime(zoneNum, g_pMomentumTimer->GetCurrentTime() -
                                                          pPlayer->m_RunStats.GetZoneEnterTime(zoneNum));
 
             // Ending velocity checks
@@ -342,8 +336,8 @@ void CTriggerTimerStop::StartTouch(CBaseEntity *pOther)
             pPlayer->m_RunStats.SetZoneExitSpeed(0, endvel, endvel2D);
 
             // Stop the timer
-            g_pMomentumTimer->Stop(pPlayer, true);
-            pPlayer->m_RunData.m_flRunTime = g_pMomentumTimer->GetLastRunTime(pPlayer);
+            g_pMomentumTimer->Stop(true);
+            pPlayer->m_RunData.m_flRunTime = g_pMomentumTimer->GetLastRunTime();
             // The map is now finished, show the mapfinished panel
             pPlayer->m_RunData.m_bMapFinished = true;
             pPlayer->m_RunData.m_bTimerRunning = false;
