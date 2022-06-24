@@ -2408,37 +2408,33 @@ void CTriggerTeleport::Touch( CBaseEntity *pOther )
 
 	pOther->SetGroundEntity( NULL );
 	
-	Vector tmp = pentTarget->GetAbsOrigin();
+	Vector pExitPosition = pentTarget->GetAbsOrigin();
 
 	if (!pentLandmark && pOther->IsPlayer())
 	{
 		// make origin adjustments in case the teleportee is a player. (origin in center, not at feet)
-		tmp.z -= pOther->WorldAlignMins().z;
+        pExitPosition.z -= pOther->WorldAlignMins().z;
 	}
 
 	//
 	// Only modify the toucher's angles and zero their velocity if no landmark was specified.
 	//
-	const QAngle *pAngles = NULL;
-	Vector *pVelocity = NULL;
+	QAngle pAngles;
+    Vector pVelocity;
+    Vector pVelocityNew = pOther->GetLocalVelocity();
 
-#ifdef HL1_DLL
-	Vector vecZero(0,0,0);		
-#endif
+	pAngles = pentTarget->GetAbsAngles();
 
 	if (!pentLandmark && !HasSpawnFlags(SF_TELEPORT_PRESERVE_ANGLES) )
 	{
-		pAngles = &pentTarget->GetAbsAngles();
-
-#ifdef HL1_DLL
-		pVelocity = &vecZero;
-#else
-		pVelocity = NULL;	//BUGBUG - This does not set the player's velocity to zero!!!
-#endif
+		// Fixes a bug for some teleporters where the direction exited is different from the entry momentum direction
+        AngleVectors(pAngles, &pVelocityNew);
+        pVelocityNew.NormalizeInPlace();
+        pVelocityNew *= pOther->GetLocalVelocity().Length2D();
 	}
 
-	tmp += vecLandmarkOffset;
-	pOther->Teleport( &tmp, pAngles, pVelocity );
+	pExitPosition += vecLandmarkOffset;
+    pOther->Teleport(&pExitPosition, &pAngles, &pVelocityNew);
 }
 
 
