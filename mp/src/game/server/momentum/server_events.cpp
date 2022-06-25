@@ -74,6 +74,11 @@ void CMOMServerEvents::LevelInitPostEntity()
     //disable point_servercommand
     ConVarRef servercommand("sv_allow_point_servercommand");
     servercommand.SetValue("0");
+    
+    ConVarRef ambientVol("volume_ambient");
+    float currentAmbientVolSetting = ambientVol.GetFloat();
+    ambientVol.SetValue(1.f-currentAmbientVolSetting+0.0000001f);
+    ambientVol.SetValue(currentAmbientVolSetting);
 }
 
 void CMOMServerEvents::LevelShutdownPreEntity()
@@ -101,6 +106,13 @@ void CMOMServerEvents::FrameUpdatePreEntityThink()
 {
     g_Mapzones.DrawMapZones();
     g_MapzoneEdit.Update();
+
+    if (!engine->IsDedicatedServer())
+    { 
+        // TRIKZ TODO: Find a better way to do this.. This has been a miserable experience...
+        ConVarRef ambientVol("volume_ambient");
+        UTIL_AmbientSoundVolume(int(ambientVol.GetFloat() * 100));
+    }
 
     if (!g_pMomentumTimer->GotCaughtCheating())
     {

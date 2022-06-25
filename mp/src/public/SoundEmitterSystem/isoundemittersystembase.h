@@ -16,6 +16,7 @@
 #include "soundflags.h"
 #include "mathlib/compressed_vector.h"
 #include "appframework/IAppSystem.h"
+#include "soundflags.h"
 
 
 #define SOUNDEMITTERSYSTEM_INTERFACE_VERSION	"VSoundEmitter002"
@@ -61,6 +62,35 @@ struct CSoundParameters
 	char 			soundname[ 128 ];
 	int				delay_msec;
 };
+
+struct CAmbientSoundParameters
+{
+    CAmbientSoundParameters(int entindex_, const Vector vecOrigin_, const char *samp_, float vol_, soundlevel_t soundlevel_,
+                            int fFlags_, int pitch_, float soundtime_, float *duration_) 
+	{
+        entindex = entindex_;
+        vecOrigin = vecOrigin_;
+        samp = samp_;
+        vol = vol_;
+        soundlevel = soundlevel_;
+        fFlags = fFlags_;
+        pitch = pitch_;
+        soundtime = soundtime_;
+        duration = duration_;
+	}
+
+
+	int entindex;
+    Vector vecOrigin;
+    const char *samp;
+    float vol;
+    soundlevel_t soundlevel;
+    int fFlags;
+    int pitch;
+    float soundtime;
+    float *duration;
+};
+
 
 // A bit of a hack, but these are just utility function which are implemented in the SouneParametersInternal.cpp file which all users of this lib also compile
 const char *SoundLevelToString( soundlevel_t level );

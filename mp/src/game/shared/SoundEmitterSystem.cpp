@@ -15,6 +15,7 @@
 #include "tier0/vprof.h"
 #include "checksum_crc.h"
 #include "tier0/icommandline.h"
+#include <string>
 
 #if defined( TF_CLIENT_DLL ) || defined( TF_DLL )
 #include "tf_shareddefs.h"
@@ -447,6 +448,8 @@ public:
 	}
 public:
 
+	// TRIKZ
+	// This EmitSoundByHandle is used for specific EmitSound_t's such as the timer start sound for MMOD
 	void EmitSoundByHandle( IRecipientFilter& filter, int entindex, const EmitSound_t & ep, HSOUNDSCRIPTHANDLE& handle )
 	{
 		// Pull data from parameters
@@ -562,6 +565,8 @@ public:
 #endif
 	}
 
+	// TRIKZ
+	// This EmitSound seems to be called for sounds such as footsteps when connected to a server
 	void EmitSound( IRecipientFilter& filter, int entindex, const EmitSound_t & ep )
 	{
 		VPROF( "CSoundEmitterSystem::EmitSound (calls engine)" );
@@ -960,7 +965,6 @@ public:
 		if ( bSwallowed )
 			return;
 #endif
-
 		if ( pSample && ( Q_stristr( pSample, ".wav" ) || Q_stristr( pSample, ".mp3" )) )
 		{
 #if defined( CLIENT_DLL )
@@ -1372,8 +1376,27 @@ int SENTENCEG_Lookup(const char *sample)
 }
 #endif
 
+static CUtlVector<CAmbientSoundParameters> g_ambientSounds;
+
+void TryAddAmbientSound(CAmbientSoundParameters currentAmbientSound)
+{
+    for (int i = 0; i < g_ambientSounds.Size(); i++)
+    {
+		// strcmp returns 0 if not equal -- thanks c++.
+        if (!strcmp(currentAmbientSound.samp, g_ambientSounds[i].samp))
+            return;
+    }
+
+    g_ambientSounds.AddToTail(currentAmbientSound);
+}
+
 void UTIL_EmitAmbientSound( int entindex, const Vector &vecOrigin, const char *samp, float vol, soundlevel_t soundlevel, int fFlags, int pitch, float soundtime /*= 0.0f*/, float *duration /*=NULL*/ )
 {
+    CAmbientSoundParameters currentAmbientSound =
+        CAmbientSoundParameters(entindex, vecOrigin, samp, vol, soundlevel, fFlags, pitch, soundtime, duration);
+
+	TryAddAmbientSound(currentAmbientSound);
+
 #ifdef STAGING_ONLY
 	if ( sv_snd_filter.GetString()[ 0 ] && !V_stristr( samp, sv_snd_filter.GetString() ))
 	{
@@ -1407,6 +1430,39 @@ void UTIL_EmitAmbientSound( int entindex, const Vector &vecOrigin, const char *s
 		g_SoundEmitterSystem.EmitAmbientSound( entindex, vecOrigin, samp, vol, soundlevel, fFlags, pitch, soundtime, duration );
 	}
 }
+
+void AmbientVolumeCallback(IConVar *var, const char *oldString, float oldFloat)
+{
+    for (int i = 0; i < g_ambientSounds.Size(); i++)
+    {
+        CAmbientSoundParameters ambientSoundParams = g_ambientSounds[i];
+        ConVarRef ambientVol("volume_ambient");
+
+		Msg("The volume of ambient sound %s has been changed to %f\n", ambientSoundParams.samp, ambientVol.GetFloat());
+
+		#if !defined(CLIENT_DLL)
+		// Client is hosting a local server
+        engine->EmitAmbientSound(ambientSoundParams.entindex, ambientSoundParams.vecOrigin, ambientSoundParams.samp,
+                                    ambientVol.GetFloat(), ambientSoundParams.soundlevel, ambientSoundParams.fFlags,
+                                    ambientSoundParams.pitch, ambientSoundParams.soundtime);
+
+		// Client is connected to dedicated server
+        g_SoundEmitterSystem.EmitAmbientSound(
+            ambientSoundParams.entindex, ambientSoundParams.vecOrigin, ambientSoundParams.samp,
+            ambientVol.GetFloat(), ambientSoundParams.soundlevel, ambientSoundParams.fFlags,
+            ambientSoundParams.pitch, ambientSoundParams.soundtime, ambientSoundParams.duration);
+		#else
+        //enginesound->EmitAmbientSound(ambientSoundParams.samp, ambientVol.GetFloat(), ambientSoundParams.pitch,
+        //                              ambientSoundParams.fFlags, ambientSoundParams.soundtime);
+		#endif
+    }
+}
+
+static ConVar ambient_volume("volume_ambient", "0", FCVAR_REPLICATED,
+                             "Volume of background music on levels (eg. bhop_aphrodite, bhop_internetclub)\
+	\nThis convar can only be modified by the server owner if connected to a multiplayer server.", true, 0.f,
+                             true, 1.f, AmbientVolumeCallback);
+
 
 static const char *UTIL_TranslateSoundName( const char *soundname, const char *actormodel )
 {

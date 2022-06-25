@@ -550,6 +550,7 @@ void UTIL_EmitSoundSuit(edict_t *entity, const char *sample);
 int  UTIL_EmitGroupIDSuit(edict_t *entity, int isentenceg);
 int  UTIL_EmitGroupnameSuit(edict_t *entity, const char *groupname);
 void UTIL_RestartAmbientSounds( void );
+void UTIL_AmbientSoundVolume( int newVolume );
 
 class EntityMatrix : public VMatrix
 {

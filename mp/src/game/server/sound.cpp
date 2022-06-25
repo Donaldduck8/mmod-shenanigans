@@ -1370,6 +1370,16 @@ void UTIL_RestartAmbientSounds( void )
 	}
 }
 
+void UTIL_AmbientSoundVolume(int newVolume)
+{
+    CAmbientGeneric *pAmbient = NULL;
+    pAmbient = (CAmbientGeneric *)gEntList.FindEntityByClassname(pAmbient, "ambient_generic");
+    if (pAmbient)
+    {
+        pAmbient->m_dpv.vol = newVolume;
+        pAmbient->SendSound(SND_CHANGE_VOL);
+    }
+}
 
 // play a specific sentence over the HEV suit speaker - just pass player entity, and !sentencename
 
