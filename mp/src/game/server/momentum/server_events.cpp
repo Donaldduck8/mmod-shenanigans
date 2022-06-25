@@ -107,7 +107,8 @@ void CMOMServerEvents::FrameUpdatePreEntityThink()
     g_Mapzones.DrawMapZones();
     g_MapzoneEdit.Update();
 
-    if (!engine->IsDedicatedServer())
+    // The following code will not run if connected to a dedicated server
+    if (UTIL_GetCommandClientIndex() != 0)
     { 
         // TRIKZ TODO: Find a better way to do this.. This has been a miserable experience...
         ConVarRef ambientVol("volume_ambient");
