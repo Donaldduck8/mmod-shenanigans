@@ -1,6 +1,6 @@
 #include "cbase.h"
 #include "server_events.h"
-
+#include "mapzones.h"
 #include "tier0/memdbgon.h"
 
 //This is only called when "map ____" is called, if the user uses changelevel then...
@@ -104,12 +104,16 @@ void CMOMServerEvents::LevelShutdownPostEntity()
 
 void CMOMServerEvents::FrameUpdatePreEntityThink()
 {
-    g_Mapzones.DrawMapZones();
     g_MapzoneEdit.Update();
 
     // The following code will not run if connected to a dedicated server
     if (UTIL_GetCommandClientIndex() != 0)
     { 
+        // This will cause spam on server console if run on a dedicated server
+        // TRIKZ TODO: Fix the console spam; for now this will be placed inside this if-check
+        // so that mapzone drawing can work inside single-player servers.
+        g_Mapzones.DrawMapZones();
+
         // TRIKZ TODO: Find a better way to do this.. This has been a miserable experience...
         ConVarRef ambientVol("volume_ambient");
         UTIL_AmbientSoundVolume(int(ambientVol.GetFloat() * 100));
