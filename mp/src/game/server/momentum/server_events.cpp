@@ -106,9 +106,8 @@ void CMOMServerEvents::FrameUpdatePreEntityThink()
 {
     g_MapzoneEdit.Update();
 
-    // The following code will not run if connected to a dedicated server
-    if (UTIL_GetCommandClientIndex() != 0)
-    { 
+    if (!engine->IsDedicatedServer())
+    {
         // This will cause spam on server console if run on a dedicated server
         // TRIKZ TODO: Fix the console spam; for now this will be placed inside this if-check
         // so that mapzone drawing can work inside single-player servers.
