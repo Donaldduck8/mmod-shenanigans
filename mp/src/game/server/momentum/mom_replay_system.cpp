@@ -130,17 +130,21 @@ void CMomentumReplaySystem::TrimReplay()
 
 void CMomentumReplaySystem::UpdateRecordingParams()
 {
-    // We only record frames that the player isn't pausing on
-    if (m_pReplayManager->Recording() && !engine->IsPaused())
+    if (m_player && m_pReplayManager->GetRecordingReplay()->GetRunEntity())
     {
-        m_pReplayManager->GetRecordingReplay()->AddFrame(CReplayFrame(m_player->EyeAngles(), m_player->GetAbsOrigin(),
-                                                                      m_player->GetViewOffset(), m_player->m_nButtons));
-        ++m_iTickCount; // increment recording tick
-    }
+        // We only record frames that the player isn't pausing on
+        if (m_pReplayManager->Recording() && !engine->IsPaused())
+        {
+            m_pReplayManager->GetRecordingReplay()->AddFrame(CReplayFrame(
+                m_player->EyeAngles(), m_player->GetAbsOrigin(), m_player->GetViewOffset(), m_player->m_nButtons));
+            ++m_iTickCount; // increment recording tick
+        }
 
-    if (m_bShouldStopRec && m_fRecEndTime < gpGlobals->curtime)
-        StopRecording(false, false);
+        if (m_bShouldStopRec && m_fRecEndTime < gpGlobals->curtime)
+            StopRecording(false, false);
+    }
 }
+
 
 void CMomentumReplaySystem::SetReplayInfo()
 {
