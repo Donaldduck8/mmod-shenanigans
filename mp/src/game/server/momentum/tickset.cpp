@@ -156,52 +156,47 @@ bool TickSet::SetTickrate(float tickrate)
 
 bool TickSet::SetTickrate(Tickrate trNew)
 {
-    if (m_bInGameUpdate)
+    if (trNew == m_trCurrent)
     {
-        m_bInGameUpdate = false;
+        DevLog("Tickrate not changed: new == current\n");
         return false;
     }
 
-    if (trNew == m_trCurrent) return false;
-
     if (interval_per_tick)
     {
-        DevLog("Testing: %f\n", trNew.fTickRate);
         *interval_per_tick = trNew.fTickRate;
         gpGlobals->interval_per_tick = *interval_per_tick;
-        DevLog("Should have set the tickrate to %f\n", *interval_per_tick);
         m_trCurrent = trNew;
         auto pPlayer = UTIL_GetLocalPlayer();
         if (pPlayer)
         {
-            m_bInGameUpdate = true;
             engine->ClientCommand(pPlayer->edict(), "reload");
         }
+        DevLog("Interval per tick set to %f\n", trNew.fTickRate);
         return true;
     }
+    Warning("Failed to set tickrate: bad hook\n");
     return false;
 }
 
-static void onTickRateChange(IConVar *var, const char* pOldValue, float fOldValue)
+static void onTickRateChange(IConVar *var, const char *pOldValue, float fOldValue)
 {
     ConVarRef tr(var);
-    float toCheck = tr.GetFloat();
-    if (g_pMomentumUtil->FloatEquals(toCheck, fOldValue)) return;
-    // MOM_TODO: Re-implement the bound 
-    //if (toCheck < 0.01f || toCheck > 0.015f)
-    //{
-    //    Warning("Cannot set a tickrate any lower than 66 or higher than 100!\n");
-    //    var->SetValue(((ConVar*) var)->GetDefault());
-    //    return;
-    //}
-    bool result = TickSet::SetTickrate(toCheck);
-    if (result)
+    float tickrate = tr.GetFloat();
+    if (CloseEnough(tickrate, TickSet::GetTickrate(), FLT_EPSILON))
+        return;
+    // MOM_TODO: Re-implement the bound
+
+    /*
+    if (toCheck < 0.01f || toCheck > 0.015f)
     {
-        Msg("Successfully changed the tickrate to %f!\n", toCheck);
-        gpGlobals->interval_per_tick = toCheck;
-    }
-    else Warning("Failed to hook interval per tick, cannot set tick rate!\n");
+        Warning("Cannot set a tickrate any lower than 66 or higher than 100!\n");
+        var->SetValue(((ConVar*) var)->GetDefault());
+        return;
+    }*/
+    TickSet::SetTickrate(tickrate);
 }
+
 
 // MOM_TODO: Remove the comment in the flags
 static ConVar tickRate("sv_tickrate", "0.015", FCVAR_CHEAT /*| FCVAR_NOT_CONNECTED*/, "Changes the tickrate of the game.", onTickRateChange);
