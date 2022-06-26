@@ -19,7 +19,7 @@ void Momentum::GameInit()
     {
         gm.SetValue(MOMGM_SURF);
     }
-    else if (!Q_strnicmp(pMapName, "bhop_", strlen("bhop_")))
+    else if (!Q_strnicmp(pMapName, "bhop_", strlen("bhop_")) || !Q_strnicmp(pMapName, "trikz_", strlen("trikz_")))
     {
         DevLog("SETTING THE GAMEMODE!\n");
         gm.SetValue(MOMGM_BHOP);

@@ -76,11 +76,11 @@ void CLocalMaps::FillMapstruct(mapstruct_t *m)
     //Game mode
     m->m_iGameMode = MOMGM_UNKNOWN;
     float tickRate = 0.015f;
-    if (!Q_strnicmp(m->m_szMapName, "surf_", 5))
+    if (!Q_strnicmp(m->m_szMapName, "surf_", strlen("surf_")))
     {
         m->m_iGameMode = MOMGM_SURF;
     }
-    else if (!Q_strnicmp(m->m_szMapName, "bhop_", 5))
+    else if (!Q_strnicmp(m->m_szMapName, "bhop_", strlen("bhop_")) || !Q_strnicmp(m->m_szMapName, "trikz_", strlen("trikz_")))
     {
         m->m_iGameMode = MOMGM_BHOP;
         tickRate = 0.01f;
