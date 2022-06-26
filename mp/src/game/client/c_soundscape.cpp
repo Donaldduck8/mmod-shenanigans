@@ -1093,8 +1093,13 @@ void C_SoundscapeSystem::ProcessPlaySoundscape( KeyValues *pPlaySoundscape, subs
 // special kind of looping sound with no spatialization
 int C_SoundscapeSystem::AddLoopingAmbient( const char *pSoundName, float volume, int pitch )
 {
-    ConVarRef loopingSounds("volume_loopingsounds");
-    volume = loopingSounds.GetFloat();
+    ConVarRef loopVol("volume_loopingsounds");
+
+	if (loopVol.GetFloat() == 0.f)
+        volume = 0.00001f;
+    else
+        volume = loopVol.GetFloat();
+
 	return AddLoopingSound( pSoundName, true, volume, SNDLVL_NORM, pitch, vec3_origin );
 }
 
@@ -1221,6 +1226,7 @@ void LoopingSoundsCallback(IConVar *var, const char *oldString, float oldFloat)
         if (g_SoundscapeSystem.m_loopingSounds[i].isAmbient)
         {
             g_SoundscapeSystem.m_loopingSounds[i].volumeCurrent = loopVol.GetFloat();
+            g_SoundscapeSystem.m_loopingSounds[i].volumeTarget = loopVol.GetFloat();
             g_SoundscapeSystem.UpdateLoopingSound(g_SoundscapeSystem.m_loopingSounds[i]);
         }
     }
