@@ -207,7 +207,7 @@ public:
 	// "dsp_volume"
 	void ProcessDSPVolume( KeyValues *pKey, subsoundscapeparams_t &params );
 
-
+	CUtlVector<loopingsound_t> m_loopingSounds; // list of currently playing sounds
 private:
 
 	bool	IsBeingRestored() const
@@ -229,7 +229,6 @@ private:
 	CUtlVector< KeyValues * >	m_SoundscapeScripts;	// The whole script file in memory
 	CUtlVector<KeyValues *>		m_soundscapes;			// Lookup by index of each root section
 	audioparams_t				m_params;				// current player audio params
-	CUtlVector<loopingsound_t>	m_loopingSounds;		// list of currently playing sounds
 	CUtlVector<randomsound_t>	m_randomSounds;			// list of random sound commands
 	float						m_nextRandomTime;		// next time to play a random sound
 	int							m_loopingSoundId;		// marks when the sound was issued
@@ -1209,12 +1208,32 @@ void C_SoundscapeSystem::StopLoopingSound( loopingsound_t &loopSound )
 	}
 }
 
+void LoopingSoundsCallback(IConVar *var, const char *oldString, float oldFloat)
+{
+    ConVarRef loopVol("volume_loopingsounds");
+
+    for (int i = 0; i < g_SoundscapeSystem.m_loopingSounds.Size(); i++)
+    {
+        Msg("The volume of loop sound %s has been changed to %f\n", g_SoundscapeSystem.m_loopingSounds[i].pWaveName,
+            loopVol.GetFloat());
+        if (g_SoundscapeSystem.m_loopingSounds[i].isAmbient)
+        {
+            g_SoundscapeSystem.m_loopingSounds[i].volumeCurrent = loopVol.GetFloat();
+            g_SoundscapeSystem.UpdateLoopingSound(g_SoundscapeSystem.m_loopingSounds[i]);
+        }
+    }
+}
+
+static ConVar volume_loopingsounds("volume_loopingsounds", "0", 0,
+                             "Volume of looping sounds on levels (eg. flute on bhop_japan)",
+                             true, 0.f, true, 1.f, LoopingSoundsCallback);
+
 // update with new volume
 void C_SoundscapeSystem::UpdateLoopingSound( loopingsound_t &loopSound )
 {
 	if ( loopSound.isAmbient )
 	{
-		enginesound->EmitAmbientSound( loopSound.pWaveName, loopSound.volumeCurrent, loopSound.pitch, SND_CHANGE_VOL );
+        enginesound->EmitAmbientSound(loopSound.pWaveName, loopSound.volumeCurrent, loopSound.pitch, SND_CHANGE_VOL);
 	}
 	else
 	{

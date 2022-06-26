@@ -79,6 +79,11 @@ void CMOMServerEvents::LevelInitPostEntity()
     float currentAmbientVolSetting = ambientVol.GetFloat();
     ambientVol.SetValue(1.f-currentAmbientVolSetting+0.0000001f);
     ambientVol.SetValue(currentAmbientVolSetting);
+    
+    ConVarRef loopingSounds("volume_loopingsounds");
+    float currentLoopingSoundsVolSetting = loopingSounds.GetFloat();
+    ambientVol.SetValue(1.f - currentLoopingSoundsVolSetting + 0.0000001f);
+    ambientVol.SetValue(currentLoopingSoundsVolSetting);
 }
 
 void CMOMServerEvents::LevelShutdownPreEntity()
