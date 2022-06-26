@@ -249,7 +249,7 @@ static void saveZonFile(const char* szMapName)
     if (zoneKV->GetFirstSubKey())//not empty 
     {
         char zoneFilePath[MAX_PATH];
-        Q_strcpy(zoneFilePath, "maps/");
+        Q_strcpy(zoneFilePath, "zones/");
         Q_strcat(zoneFilePath, szMapName, MAX_PATH);
         Q_strncat(zoneFilePath, EXT_ZONE_FILE, MAX_PATH);
         zoneKV->SaveToFile(filesystem, zoneFilePath, "MOD");
@@ -384,7 +384,7 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
 {
     bool toReturn = false;
     char zoneFilePath[MAX_PATH];
-    V_ComposeFileName(MAP_FOLDER, szMapName, zoneFilePath, MAX_PATH);
+    V_ComposeFileName(ZONE_FOLDER, szMapName, zoneFilePath, MAX_PATH);
     V_SetExtension(zoneFilePath, EXT_ZONE_FILE, MAX_PATH);
     DevLog("Looking for zone file: %s \n", zoneFilePath);
     KeyValues* zoneKV = new KeyValues(szMapName);

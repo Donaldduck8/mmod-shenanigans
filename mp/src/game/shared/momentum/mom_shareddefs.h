@@ -99,6 +99,7 @@ typedef enum FLAGS
 #define MOM_APIDOMAIN MOM_WEBDOMAIN
 
 #define MAP_FOLDER "maps"
+#define ZONE_FOLDER "zones"
 #define RECORDING_PATH "recordings"
 #define EXT_ZONE_FILE ".zon"
 #define EXT_RECORDING_FILE ".momrec"
