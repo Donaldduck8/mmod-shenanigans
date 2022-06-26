@@ -139,10 +139,10 @@ void CMomentumReplaySystem::UpdateRecordingParams()
                 m_player->EyeAngles(), m_player->GetAbsOrigin(), m_player->GetViewOffset(), m_player->m_nButtons));
             ++m_iTickCount; // increment recording tick
         }
-
-        if (m_bShouldStopRec && m_fRecEndTime < gpGlobals->curtime)
-            StopRecording(false, false);
     }
+
+    if (m_bShouldStopRec && m_fRecEndTime < gpGlobals->curtime)
+        StopRecording(false, false);
 }
 
 
