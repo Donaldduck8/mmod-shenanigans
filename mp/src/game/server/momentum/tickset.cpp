@@ -119,6 +119,8 @@ bool TickSet::TickInit()
 
 bool TickSet::SetTickrate(int gameMode)
 {
+    ConVarRef customTickrate("sv_tickrate");
+
     switch (gameMode)
     {
     case MOMGM_BHOP:
@@ -127,8 +129,7 @@ bool TickSet::SetTickrate(int gameMode)
         return SetTickrate(s_DefinedRates[TICKRATE_100]);
 
     case MOMGM_UNKNOWN:
-        if (m_bInGameUpdate) // If the user's updating this, ignore the end of map setting
-            return false;
+        return SetTickrate(customTickrate.GetFloat());
 
     case MOMGM_SURF:
     default:
@@ -158,7 +159,7 @@ bool TickSet::SetTickrate(Tickrate trNew)
 {
     if (trNew == m_trCurrent)
     {
-        DevLog("Tickrate not changed: new == current\n");
+        Msg("Tickrate not changed: new == current\n");
         return false;
     }
 
@@ -167,15 +168,19 @@ bool TickSet::SetTickrate(Tickrate trNew)
         *interval_per_tick = trNew.fTickRate;
         gpGlobals->interval_per_tick = *interval_per_tick;
         m_trCurrent = trNew;
-        auto pPlayer = UTIL_GetLocalPlayer();
-        if (pPlayer)
+        for (int i = 0; i <= gpGlobals->maxClients; i++)
         {
-            engine->ClientCommand(pPlayer->edict(), "reload");
+            auto pPlayer = UTIL_PlayerByIndex(i);
+            if (pPlayer)
+            {
+                engine->ClientCommand(pPlayer->edict(), "reload");
+            }
         }
-        DevLog("Interval per tick set to %f\n", trNew.fTickRate);
+
+        Msg("Interval per tick set to %f\n", trNew.fTickRate);
         return true;
     }
-    Warning("Failed to set tickrate: bad hook\n");
+    Msg("Failed to set tickrate: bad hook\n");
     return false;
 }
 
@@ -194,9 +199,10 @@ static void onTickRateChange(IConVar *var, const char *pOldValue, float fOldValu
         var->SetValue(((ConVar*) var)->GetDefault());
         return;
     }*/
+
     TickSet::SetTickrate(tickrate);
 }
 
 
 // MOM_TODO: Remove the comment in the flags
-static ConVar tickRate("sv_tickrate", "0.015", FCVAR_CHEAT /*| FCVAR_NOT_CONNECTED*/, "Changes the tickrate of the game.", onTickRateChange);
+static ConVar tickRate("sv_tickrate", "0.015", FCVAR_CHEAT | FCVAR_REPLICATED /*| FCVAR_NOT_CONNECTED*/, "Changes the tickrate of the game.", onTickRateChange);
