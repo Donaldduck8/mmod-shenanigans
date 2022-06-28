@@ -97,6 +97,31 @@ bool TickSet::TickInit()
     if (p)
         interval_per_tick = *reinterpret_cast<float**>(p + 18);
 
+    // TRIKZ TODO: MOVE THIS TO SEPARATE FILE- SHOULD NOT BE IN TICKSET
+    // Prevent the culling of skyboxes at high FOVs
+    // https://github.com/VSES/SourceEngine2007/blob/master/se2007/engine/gl_warp.cpp#L315
+    // TODO: Use a value derived from FOV instead
+    unsigned char skyboxpattern[] = {0xF3, 0x0F, 0x59, 0x15, '?',  '?',  '?',  '?',
+                               0xF3, 0x0F, 0x58, 0xC1, 0xF3, 0x0F, 0x10, 0x0D};
+    auto addr = reinterpret_cast<uintptr_t>(FindPattern(moduleBase, moduleSize, skyboxpattern, "xxxx????xxxxxxxx"));
+
+    if (addr)
+    {
+        // The value is stored in the data segment so it needs write permission
+        float *fValue = *reinterpret_cast<float **>(addr + 16);
+
+        // 0x40 is read,write,execute
+        unsigned long iOldProtection, iNewProtection = 0x40;
+
+        if (VirtualProtect((void *)fValue, sizeof(float), iNewProtection, &iOldProtection))
+        {
+            *fValue = -1;
+
+            // Restore old protections
+            VirtualProtect((void *)fValue, sizeof(float), iOldProtection, &iNewProtection);
+        }
+    }
+
 #elif defined (__linux__)
     void *base;
     size_t length;
