@@ -141,7 +141,6 @@ bool TickSet::TickInit()
         notconnectedAddr = (uintptr_t *)notconnectedAddr + 5;
 
         unsigned long iOldProtection, iNewProtection = 0x40;
-        Msg("Hey we found it!\n");
         if (VirtualProtect(notconnectedAddr, 1, iNewProtection, &iOldProtection))
         {
             Q_memcpy(notconnectedAddr, "", 1);
