@@ -122,6 +122,34 @@ bool TickSet::TickInit()
         }
     }
 
+    // Prevent the FCVAR_NOT_CONNECTED flag from being checked when on a server
+    // This fixes commands such as fps_max and cl_interp not working when playing
+    // on a map to be closer in-line with how it works in CS:GO.
+    unsigned char notconnectedpattern[] = {0x8B, 0x06, 0x8B, 0xCE, 0x68, '?',  '?',  '?',  '?',  0x8B, 0x40, 0x08, 0xFF, 0xD0,
+                                 0x84, 0xC0, 0x74, '?',  0x83, 0x3D, '?',  '?',  '?',  '?',  '?',  0x7C, '?',  0x8B,
+                                 0x06, 0x8B, 0xCE, 0x68, '?',  '?',  '?',  '?',  0x8B, 0x40, 0x08, 0xFF, 0xD0, 0x84,
+                                 0xC0, 0x74, '?',  0x8B, 0x0D, '?',  '?',  '?',  '?',  0x85, 0xC9, 0x74, '?',  0x8B,
+                                 0x11, 0x8D, 0x46, 0x18, 0x50, 0x8B, 0x82, 0x30, 0x01, 0x00, 0x00, 0xFF, 0xD0, 0x84,
+                                 0xC0, 0x75, '?',  0x8B, 0x06, 0x8B, 0xCE, 0xFF, 0x50, 0x10, 0x50, 0x68, '?',  '?',
+                                 '?',  '?',  0xFF, 0x15, '?',  '?',  '?',  '?',  0x83, 0xC4, '?',  0xB0, '?'};
+                                 
+    void* notconnectedAddr = FindPattern(moduleBase, moduleSize, notconnectedpattern,
+             "xxxxx????xxxxxxxx?xx?????x?xxxxx????xxxxxxxx?xx????xxx?xxxxxxxxxxxxxxxxx?xxxxxxxxx????xx????xx?x?");
+
+    if (notconnectedAddr)
+    {
+        notconnectedAddr = (uintptr_t *)notconnectedAddr + 5;
+
+        unsigned long iOldProtection, iNewProtection = 0x40;
+        Msg("Hey we found it!\n");
+        if (VirtualProtect(notconnectedAddr, 1, iNewProtection, &iOldProtection))
+        {
+            Q_memcpy(notconnectedAddr, "", 1);
+
+            VirtualProtect(notconnectedAddr, 1, iOldProtection, &iNewProtection);
+        }
+    }
+
 #elif defined (__linux__)
     void *base;
     size_t length;
