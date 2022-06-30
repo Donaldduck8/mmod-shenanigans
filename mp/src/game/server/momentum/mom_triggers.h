@@ -158,6 +158,26 @@ class CTriggerTimerStart : public CTriggerStage
     float m_fBhopLeaveSpeed;
 };
 
+class CTriggerTimerBonusStart : public CTriggerTimerStart
+{
+    public:
+    int GetBonusStage() const { return m_bonusStage; }
+    void SetBonusStage(const int m_bonusStage);
+
+    private:
+    int m_bonusStage;
+};
+
+class CTriggerTimerBonusStop : public CTriggerTimerStop
+{
+    public:
+      int GetBonusStage() const { return m_bonusStage; }
+      void SetBonusStage(const int m_bonusStage);
+
+    private:
+      int m_bonusStage;
+};
+
 // CFilterCheckpoint
 class CFilterCheckpoint : public CBaseFilter
 {

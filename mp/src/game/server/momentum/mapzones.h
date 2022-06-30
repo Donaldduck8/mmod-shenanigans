@@ -15,6 +15,8 @@
 #define MOMZONETYPE_CPTELE      5
 #define MOMZONETYPE_MULTIHOP    6
 #define MOMZONETYPE_STAGE       7
+#define MOMZONETYPE_BONUSSTART  8
+#define MOMZONETYPE_BONUSSTOP   9
 
 class CMapzone
 {
@@ -23,7 +25,7 @@ public:
     CMapzone(const int, Vector*, QAngle*, Vector*, Vector*,
         const int, const bool, const bool, const float, 
         const bool, const float, const float, 
-        const string_t, const bool);
+        const string_t, const bool, const int);
     ~CMapzone();
 
     void SpawnZone();
@@ -54,6 +56,7 @@ private:
     Vector* m_scaleMins;
     Vector* m_scaleMaxs;
     CBaseEntity* m_trigger;
+    int m_bonusStage;
 };
 
 class CMapzoneData

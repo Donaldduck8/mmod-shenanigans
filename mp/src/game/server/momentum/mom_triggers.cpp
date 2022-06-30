@@ -930,3 +930,9 @@ void CTriggerSlide::EndTouch(CBaseEntity *pOther)
     BaseClass::EndTouch(pOther);
 }
 //-----------------------------------------------------------------------------------------------
+
+void CTriggerTimerBonusStart::SetBonusStage(const int bonusStage) { m_bonusStage = bonusStage; }
+void CTriggerTimerBonusStop::SetBonusStage(const int bonusStage) { m_bonusStage = bonusStage; }
+
+LINK_ENTITY_TO_CLASS(trigger_momentum_timer_bonusstart, CTriggerTimerBonusStart);
+LINK_ENTITY_TO_CLASS(trigger_momentum_timer_bonusstop, CTriggerTimerBonusStop);

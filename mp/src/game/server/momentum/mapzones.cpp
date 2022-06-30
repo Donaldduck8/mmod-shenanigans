@@ -39,7 +39,7 @@ CMapzoneData::CMapzoneData() {}
 CMapzone::CMapzone(const int pType, Vector *pPos, QAngle *pRot, Vector *pScaleMins,
     Vector* pScaleMaxs, const int pIndex, const bool pShouldStop, const bool pShouldTilt,
     const float pHoldTime, const bool pLimitSpeed, const float pBhopLeaveSpeed, const float flYaw,
-    const string_t pLinkedEnt, const bool pCheckOnlyXY)
+    const string_t pLinkedEnt, const bool pCheckOnlyXY, const int pBonusStage)
 {
     m_type = pType;
     m_pos = pPos;
@@ -58,6 +58,7 @@ CMapzone::CMapzone(const int pType, Vector *pPos, QAngle *pRot, Vector *pScaleMi
     m_limitbhop = false;
     m_maxleavespeed = 0.0f;
     m_trigger = nullptr;
+    m_bonusStage = pBonusStage;
 }
 
 void CMapzone::SpawnZone()
@@ -129,6 +130,28 @@ void CMapzone::SpawnZone()
         ((CTriggerStage *) m_trigger)->SetStageNumber(m_index);
         break;
         //MOM_TODO: add trigger_momentum_teleport, and momentum_trigger_userinput
+    case MOMZONETYPE_BONUSSTART:
+        m_trigger = (CTriggerTimerBonusStart *)CreateEntityByName("trigger_momentum_timer_bonusstart");
+        ((CTriggerTimerBonusStart *)m_trigger)->SetIsLimitingSpeed(m_limitingspeed);
+        ((CTriggerTimerBonusStart *)m_trigger)->SetMaxLeaveSpeed(m_bhopleavespeed);
+        ((CTriggerTimerBonusStart *)m_trigger)->SetBonusStage(m_bonusStage);
+        if (m_yaw != NO_LOOK)
+        {
+            ((CTriggerTimerBonusStart *)m_trigger)->SetHasLookAngles(true);
+            ((CTriggerTimerBonusStart *)m_trigger)->SetLookAngles(QAngle(0, m_yaw, 0));
+        }
+        else
+        {
+            ((CTriggerTimerBonusStart *)m_trigger)->SetHasLookAngles(false);
+        }
+
+        m_trigger->SetName(MAKE_STRING("Bonus Start Trigger"));
+        g_pMomentumTimer->SetStartTrigger((CTriggerTimerBonusStart *)m_trigger);
+        break;
+    case MOMZONETYPE_BONUSSTOP:
+        m_trigger = (CTriggerTimerBonusStop *)CreateEntityByName("trigger_momentum_timer_bonusstop");
+        m_trigger->SetName(MAKE_STRING("Bonus End Trigger"));
+        break;
     default:
         break;
     }
@@ -166,6 +189,25 @@ static void saveZonFile(const char* szMapName)
         else if (pEnt->ClassMatches("trigger_momentum_timer_stop"))
         {
             subKey = new KeyValues("end");
+        }
+        else if (pEnt->ClassMatches("trigger_momentum_timer_bonus_start"))
+        {
+            CTriggerTimerBonusStart *pTrigger = dynamic_cast<CTriggerTimerBonusStart *>(pEnt);
+            subKey = new KeyValues("bonusstart");
+            if (pTrigger)
+            {
+                subKey->SetInt("bonusstage", pTrigger->GetBonusStage());
+                subKey->SetFloat("bhopleavespeed", pTrigger->GetMaxLeaveSpeed());
+                subKey->SetBool("limitingspeed", pTrigger->IsLimitingSpeed());
+                if (pTrigger->HasLookAngles())
+                    subKey->SetFloat("yaw", pTrigger->GetLookAngles()[YAW]);
+            }
+        }
+        else if (pEnt->ClassMatches("trigger_momentum_timer_bonus_stop"))
+        {
+            CTriggerTimerBonusStop *pTrigger = dynamic_cast<CTriggerTimerBonusStop *>(pEnt);
+            subKey = new KeyValues("bonusend");
+            subKey->SetInt("bonusstage", pTrigger->GetBonusStage());
         }
         else if (pEnt->ClassMatches("trigger_momentum_timer_checkpoint"))
         {
@@ -411,7 +453,7 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
             bool checkonlyxy = true;
             float bhopleavespeed = 250.0f;
             const char * linkedtrigger = nullptr;
-
+            int bonusstage = -1;
             float start_yaw = NO_LOOK;
 
             if (Q_strcmp(cp->GetName(), "start") == 0)
@@ -465,6 +507,16 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
                 zoneType = MOMZONETYPE_STAGE;
                 index = cp->GetInt("number", 0);
             }
+            else if (!Q_strcmp(cp->GetName(), "bonusstart"))
+            {
+                zoneType = MOMZONETYPE_BONUSSTART;
+                bonusstage = cp->GetInt("bonusstage", 0);
+            }
+            else if (!Q_strcmp(cp->GetName(), "bonusend"))
+            {
+                zoneType = MOMZONETYPE_BONUSSTOP;
+                bonusstage = cp->GetInt("bonusstage", 0);
+            }
             else
             {
                 Warning("Error while reading zone file: Unknown mapzone type %s!\n", cp->GetName());
@@ -473,7 +525,7 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
 
             // Add element
             m_zones.AddToTail(new CMapzone(zoneType, pos, rot, scaleMins, scaleMaxs, index, shouldStop, shouldTilt,
-                holdTime, limitingspeed, bhopleavespeed, start_yaw, MAKE_STRING(linkedtrigger), checkonlyxy));
+                holdTime, limitingspeed, bhopleavespeed, start_yaw, MAKE_STRING(linkedtrigger), checkonlyxy, bonusstage));
         }
 
         DevLog("Successfully loaded map zone file %s!\n", zoneFilePath);
@@ -511,6 +563,11 @@ bool ZoneTypeToClass( int type, char *dest )
     case MOMZONETYPE_STAGE:
         Q_strcpy(dest, "trigger_momentum_timer_stage");
         return true;
+    case MOMZONETYPE_BONUSSTART:
+        Q_strcpy(dest, "trigger_momentum_timer_bonus_start");
+        return true;
+    case MOMZONETYPE_BONUSSTOP:
+        Q_strcpy(dest, "trigger_momentum_timer_bonus_stop");
     }
 
     return false;
