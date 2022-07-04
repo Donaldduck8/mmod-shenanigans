@@ -17,6 +17,15 @@
 		"priority"		"99"
 		"specifics"		"shared"
 	}
+
+	"SelectReplay"
+	{
+		"text"			"#GameUI2_SelectReplay"
+		"description"	"#GameUI2_SelectReplayDescription"
+		"command"		"engine ShowReplaySelectionPanel"
+		"priority"		"80"
+		"specifics"		"shared"
+	}
 	
 	"Options"
 	{

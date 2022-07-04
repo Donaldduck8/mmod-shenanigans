@@ -11,6 +11,7 @@ public:
     DECLARE_CLASS_SIMPLE(CMapListPanel, vgui::ListPanel);
 
     CMapListPanel(CBaseMapsPage *pOuter, const char *pName);
+    CMapListPanel(CBaseReplaysPage *pOuter, const char *pName);
 
     virtual void OnKeyCodeTyped(vgui::KeyCode code);
 

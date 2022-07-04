@@ -1,5 +1,5 @@
-#ifndef SERVERBROWSERDIALOG_H
-#define SERVERBROWSERDIALOG_H
+//#ifndef SERVERBROWSERDIALOG_H
+//#define SERVERBROWSERDIALOG_H
 #ifdef _WIN32
 #pragma once
 #endif
@@ -10,14 +10,14 @@
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class CMapSelectorDialog : public Frame
+class CReplaySelectorDialog : public Frame
 {
-    DECLARE_CLASS_SIMPLE(CMapSelectorDialog, vgui::Frame);
+    DECLARE_CLASS_SIMPLE(CReplaySelectorDialog, vgui::Frame);
 
 public:
     // Construction/destruction
-    CMapSelectorDialog(VPANEL parent);
-    ~CMapSelectorDialog(void);
+    CReplaySelectorDialog(VPANEL parent);
+    ~CReplaySelectorDialog(void);
 
     void		Initialize(void);
 
@@ -25,7 +25,7 @@ public:
     void		Open(void);
 
     // gets server info
-    mapstruct_t *GetMap(unsigned int serverID);
+    replaystruct_t *GetMap(unsigned int serverID);
     // called every frame
     virtual void OnTick();
 
@@ -40,7 +40,7 @@ public:
 
     // returns a pointer to a static instance of this dialog
     // valid for use only in sort functions
-    static CMapSelectorDialog *GetInstance();
+    static CReplaySelectorDialog *GetInstance();
 
     // begins the process of joining a server from a game list
     // the game info dialog it opens will also update the game list
@@ -49,10 +49,10 @@ public:
     // joins a game by a specified IP, not attached to any game list
     CDialogMapInfo *JoinGame(int serverIP, int serverPort);
 
+    CDialogMapInfo *OpenMapInfoDialog(IReplayList *gameList, KeyValues *pMap);
+
     // opens a game info dialog from a game list
     CDialogMapInfo *OpenMapInfoDialog(IMapList *gameList, KeyValues *pMap);
-
-    CDialogMapInfo *OpenMapInfoDialog(IReplayList *gameList, KeyValues *pMap);
 
     // opens a game info dialog by a specified IP, not attached to any game list
     CDialogMapInfo *OpenMapInfoDialog(int serverIP, uint16 connPort, uint16 queryPort);
@@ -94,7 +94,7 @@ private:
     CUtlVector<DHANDLE<CDialogMapInfo> > m_vecMapInfoDialogs;
 
     // pointer to current game list
-    IMapList *m_pGameList;
+    IReplayList *m_pGameList;
 
     // Status text
     Label	*m_pStatusLabel;
@@ -103,7 +103,7 @@ private:
     PropertySheet *m_pTabPanel;
 
     //Map tabs
-    CLocalMaps *m_pLocal;
+    CLocalReplays *m_pLocal;
     COnlineMaps *m_pOnline;
 
     //Filter data
@@ -119,6 +119,6 @@ private:
 };
 
 // singleton accessor
-extern CMapSelectorDialog &MapSelectorDialog();
+extern CReplaySelectorDialog &ReplaySelectorDialog();
 
-#endif // SERVERBROWSERDIALOG_H
+//#endif // SERVERBROWSERDIALOG_H

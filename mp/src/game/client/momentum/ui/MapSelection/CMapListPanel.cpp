@@ -9,6 +9,12 @@ CMapListPanel::CMapListPanel(CBaseMapsPage *pOuter, const char *pName) : BaseCla
     SetRowHeight(80);
 }
 
+CMapListPanel::CMapListPanel(CBaseReplaysPage *pOuter, const char *pName) : BaseClass(pOuter, pName)
+{
+    m_pOuter = (CBaseMapsPage *)pOuter;
+    SetRowHeight(80);
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Forward KEY_ENTER to the CBaseMapsPage.
 //-----------------------------------------------------------------------------

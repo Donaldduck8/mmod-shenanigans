@@ -283,6 +283,9 @@
 "GameUI2_SelectMap" "SELECT MAP"
 "GameUI2_SelectMapDescription" "Choose a map to play"
 
+"GameUI2_SelectReplay" "SELECT REPLAY"
+"GameUI2_SelectReplayDescription" "Choose a replay to watch"
+
 "GameUI2_Options" "OPTIONS"
 "GameUI2_OptionsDescription" "Setup audio, video, mouse and other settings"
 

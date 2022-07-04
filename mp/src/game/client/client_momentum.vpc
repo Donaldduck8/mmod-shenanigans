@@ -34,23 +34,33 @@ $Project "Client (Momentum)"
                     $Folder "Headers"
                     {
                         $File "momentum\ui\MapSelection\BaseMapsPage.h"
+						$File "momentum\ui\MapSelection\BaseReplaysPage.h"
                         $File "momentum\ui\MapSelection\IMapList.h"
+						$File "momentum\ui\MapSelection\IReplayList.h"
                         $File "momentum\ui\MapSelection\IMapSelector.h"
+						$File "momentum\ui\MapSelection\IReplaySelector.h"
                         $File "momentum\ui\MapSelection\LocalMaps.h"
+						$File "momentum\ui\MapSelection\LocalReplays.h"
                         $File "momentum\ui\MapSelection\MapContextMenu.h"
                         $File "momentum\ui\MapSelection\MapInfoDialog.h"
                         $File "momentum\ui\MapSelection\MapSelector.h"
+						$File "momentum\ui\MapSelection\ReplaySelector.h"
                         $File "momentum\ui\MapSelection\MapSelectorDialog.h"
+						$File "momentum\ui\MapSelection\ReplaySelectorDialog.h"
                         $File "momentum\ui\MapSelection\OnlineMaps.h"
                         $File "momentum\ui\MapSelection\pch_mapselection.h"
                         $File "momentum\ui\MapSelection\CMapListPanel.h"
                     }
                     $File "momentum\ui\MapSelection\BaseMapsPage.cpp" \
+						  "momentum\ui\MapSelection\BaseReplaysPage.cpp" \
                           "momentum\ui\MapSelection\LocalMaps.cpp" \ 
+						  "momentum\ui\MapSelection\LocalReplays.cpp" \ 
                           "momentum\ui\MapSelection\MapContextMenu.cpp" \
                           "momentum\ui\MapSelection\MapInfoDialog.cpp" \ 
                           "momentum\ui\MapSelection\MapSelector.cpp" \
+						  "momentum\ui\MapSelection\ReplaySelector.cpp" \
                           "momentum\ui\MapSelection\MapSelectorDialog.cpp" \
+						  "momentum\ui\MapSelection\ReplaySelectorDialog.cpp" \
                           "momentum\ui\MapSelection\OnlineMaps.cpp" \
                           "momentum\ui\MapSelection\CMapListPanel.cpp"
                     {

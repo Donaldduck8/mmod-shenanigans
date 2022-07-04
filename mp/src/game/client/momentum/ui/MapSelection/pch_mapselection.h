@@ -26,6 +26,7 @@
 #include <steam/isteamfriends.h>
 
 #include "IMapSelector.h"
+#include "IReplaySelector.h"
 //#include "ServerBrowser/IServerBrowser.h"
 //#include "IVGuiModule.h"
 //#include "vgui_controls/Controls.h"
@@ -47,12 +48,17 @@
 
 //MapSelection headers
 #include "IMapList.h"
+#include "IReplayList.h"
 #include "MapSelector.h"
+#include "ReplaySelector.h"
 #include "MapContextMenu.h"
 #include "MapInfoDialog.h"
 #include "BaseMapsPage.h"
+#include "BaseReplaysPage.h"
 #include "LocalMaps.h"
+#include "LocalReplays.h"
 #include "OnlineMaps.h"
 #include "MapSelectorDialog.h"
+#include "ReplaySelectorDialog.h"
 #include "CMapListPanel.h"
 #include "cbase.h"

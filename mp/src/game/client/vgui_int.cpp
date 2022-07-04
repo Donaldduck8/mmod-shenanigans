@@ -26,6 +26,7 @@
 
 //Momentum
 #include "momentum/ui/MapSelection/IMapSelector.h"
+#include "momentum/ui/MapSelection/IReplaySelector.h"
 #include "momentum/ui/IChangelogPanel.h"
 #include "momentum/ui/IContactPanel.h"
 #include "momentum/ui/SettingsPanel/IMomentumSettingsPanel.h"
@@ -129,6 +130,7 @@ void VGui_CreateMomentumPanels()
 {
     VPANEL gameMenu = enginevgui->GetPanel(PANEL_GAMEUIDLL);
     mapselector->Create(gameMenu);
+    replayselector->Create(gameMenu);
     changelogpanel->Create(gameMenu);
     momentum_settings->Create(gameMenu);
     contact_panel->Create(gameMenu);
@@ -138,6 +140,7 @@ void VGui_CreateMomentumPanels()
 void VGui_DestroyMomentumPanels()
 {
     mapselector->Destroy();
+    replayselector->Destroy();
     changelogpanel->Destroy();
     momentum_settings->Destroy();
     contact_panel->Destroy();
