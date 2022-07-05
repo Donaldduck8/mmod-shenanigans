@@ -125,8 +125,8 @@ void CDialogReplayInfo::OnConnect()
 //-----------------------------------------------------------------------------
 void CDialogReplayInfo::RequestInfo(const char* mapName)
 {
-    GetMapInfo(mapName);
-    Get10MapTimes(mapName);
+    //GetMapInfo(mapName);
+    //Get10MapTimes(mapName);
     GetReplayInfo(mapName);
 }
 
