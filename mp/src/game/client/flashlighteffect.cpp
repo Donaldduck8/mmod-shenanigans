@@ -35,7 +35,10 @@ void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float 
 static ConVar r_newflashlight( "r_newflashlight", "1", FCVAR_CHEAT, "", r_newflashlightCallback_f );
 static ConVar r_swingflashlight( "r_swingflashlight", "1", FCVAR_CHEAT );
 static ConVar r_flashlightlockposition( "r_flashlightlockposition", "0", FCVAR_CHEAT );
-static ConVar r_flashlightfov( "r_flashlightfov", "150.0", FCVAR_CHEAT );
+static ConVar r_flashlightcolor_r("r_flashlightcolor_r", "2.0", FCVAR_ARCHIVE);
+static ConVar r_flashlightcolor_g("r_flashlightcolor_g", "1.4", FCVAR_ARCHIVE);
+static ConVar r_flashlightcolor_b("r_flashlightcolor_b", "0.5", FCVAR_ARCHIVE);
+static ConVar r_flashlightfov("r_flashlightfov", "150.0", FCVAR_CHEAT);
 static ConVar r_flashlightoffsetx( "r_flashlightoffsetx", "0.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsety( "r_flashlightoffsety", "-10.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetz( "r_flashlightoffsetz", "0.0", FCVAR_CHEAT );
@@ -325,9 +328,9 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 	}
 
 	state.m_fConstantAtten = r_flashlightconstant.GetFloat();
-	state.m_Color[0] = 1.0f;
-	state.m_Color[1] = 1.0f;
-	state.m_Color[2] = 1.0f;
+    state.m_Color[0] = r_flashlightcolor_r.GetFloat();
+    state.m_Color[1] = r_flashlightcolor_g.GetFloat();
+    state.m_Color[2] = r_flashlightcolor_b.GetFloat();
 	state.m_Color[3] = r_flashlightambient.GetFloat();
 	state.m_NearZ = r_flashlightnear.GetFloat() + m_flDistMod;	// Push near plane out so that we don't clip the world when the flashlight pulls back 
 	state.m_FarZ = r_flashlightfar.GetFloat();
