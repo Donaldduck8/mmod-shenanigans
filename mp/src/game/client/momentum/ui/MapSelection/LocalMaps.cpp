@@ -99,7 +99,7 @@ void CLocalMaps::FillMapstruct(mapstruct_t *m)
     if (pBestTime)
     {
         m->m_bCompleted = true;
-        Log("FOUND BEST TIME: %f\n", pBestTime->GetRunTime());
+        //Log("FOUND BEST TIME: %f\n", pBestTime->GetRunTime());
         g_pMomentumUtil->FormatTime(pBestTime->GetRunTime(), m->m_szBestTime);
     }
 }

@@ -75,7 +75,7 @@ void CMomReplayManager::StopRecording()
 
 CMomReplayBase* CMomReplayManager::LoadReplayFile(const char* pFileName, bool bFullLoad, const char* pPathID)
 {
-    Log("Loading a replay from '%s'...\n", pFileName);
+    //Log("Loading a replay from '%s'...\n", pFileName);
 
     auto file = filesystem->Open(pFileName, "r+b", pPathID);
 
@@ -106,13 +106,13 @@ CMomReplayBase* CMomReplayManager::LoadReplayFile(const char* pFileName, bool bF
         return nullptr;
     }
 
-    Log("Loading replay '%s' of version '%d'...\n", pFileName, version);
+    //Log("Loading replay '%s' of version '%d'...\n", pFileName, version);
 
     // MOM_TODO (OrfeasZ): Verify that replay parsing was successful.
     CMomReplayBase * toReturn = m_mapCreators.Element(m_mapCreators.Find(version))->LoadReplay(&reader, bFullLoad);
 
     filesystem->Close(file);
-    Log("Successfully loaded replay.\n");
+    //Log("Successfully loaded replay.\n");
 
     return toReturn;
 }
