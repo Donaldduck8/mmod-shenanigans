@@ -209,8 +209,8 @@ void CDialogReplayInfo::AddPlayerToList(KeyValues* pPlayerInfo)
 //-----------------------------------------------------------------------------
 int CDialogReplayInfo::PlayerTimeColumnSortFunc(ListPanel *pPanel, const ListPanelItem &p1, const ListPanelItem &p2)
 {
-    float p1time = p1.kv->GetFloat("TimeSec");
-    float p2time = p2.kv->GetFloat("TimeSec");
+    float p1time = p1.kv->GetFloat("Time");
+    float p2time = p2.kv->GetFloat("Time");
 
     if (p1time > p2time)
         return 1;
