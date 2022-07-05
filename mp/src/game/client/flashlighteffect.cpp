@@ -36,12 +36,12 @@ static ConVar r_newflashlight( "r_newflashlight", "1", FCVAR_CHEAT, "", r_newfla
 static ConVar r_swingflashlight( "r_swingflashlight", "1", FCVAR_CHEAT );
 static ConVar r_flashlightlockposition( "r_flashlightlockposition", "0", FCVAR_CHEAT );
 static ConVar r_flashlightfov( "r_flashlightfov", "150.0", FCVAR_CHEAT );
-static ConVar r_flashlightoffsetx( "r_flashlightoffsetx", "10.0", FCVAR_CHEAT );
+static ConVar r_flashlightoffsetx( "r_flashlightoffsetx", "1.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsety( "r_flashlightoffsety", "0.0", FCVAR_CHEAT );
-static ConVar r_flashlightoffsetz( "r_flashlightoffsetz", "24.0", FCVAR_CHEAT );
+static ConVar r_flashlightoffsetz( "r_flashlightoffsetz", "1.0", FCVAR_CHEAT );
 static ConVar r_flashlightnear( "r_flashlightnear", "4.0", FCVAR_CHEAT );
 static ConVar r_flashlightfar( "r_flashlightfar", "1600.0", FCVAR_CHEAT );
-static ConVar r_flashlightconstant( "r_flashlightconstant", "-0.06", FCVAR_CHEAT );
+static ConVar r_flashlightconstant( "r_flashlightconstant", "-0.035", FCVAR_CHEAT );
 static ConVar r_flashlightlinear( "r_flashlightlinear", "60.0", FCVAR_CHEAT );
 static ConVar r_flashlightquadratic( "r_flashlightquadratic", "0.0", FCVAR_CHEAT );
 static ConVar r_flashlightvisualizetrace( "r_flashlightvisualizetrace", "0", FCVAR_CHEAT );
@@ -159,11 +159,13 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 	bool bPlayerOnLadder = ( C_BasePlayer::GetLocalPlayer()->GetMoveType() == MOVETYPE_LADDER );
 
 	const float flEpsilon = 0.1f;			// Offset flashlight position along vecUp
-	const float flDistCutoff = 128.0f;
+	const float flDistCutoff = 256.0f;
 	const float flDistDrag = 0.2;
 
 	CTraceFilterSkipPlayerAndViewModel traceFilter;
+    float flOffsetX = r_flashlightoffsetx.GetFloat();
 	float flOffsetY = r_flashlightoffsety.GetFloat();
+    float flOffsetZ = r_flashlightoffsetz.GetFloat();
 
 	if( r_swingflashlight.GetBool() )
 	{
@@ -177,6 +179,8 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 	}
 
 	Vector vOrigin = vecPos + flOffsetY * vecUp;
+    vOrigin.x += flOffsetX;
+    vOrigin.z += flOffsetZ;
 
 	// Not on ladder...trace a hull
 	if ( !bPlayerOnLadder ) 
