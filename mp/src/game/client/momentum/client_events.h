@@ -6,15 +6,19 @@
 
 #include "cbase.h"
 
-class CMOMClientEvents : public CAutoGameSystem
+class CMOMClientEvents : public CAutoGameSystemPerFrame
 {
 public:
-    CMOMClientEvents(const char *pName) : CAutoGameSystem(pName)
+    CMOMClientEvents(const char *pName) : CAutoGameSystemPerFrame(pName)
     {
     }
 
     //After DLL inits successfully
     void PostInit() OVERRIDE;
+
+    void LevelInitPostEntity() OVERRIDE;
+
+    void Update(float frametime) OVERRIDE;
 
     //From the Valve SDK wiki
     static void MountAdditionalContent();

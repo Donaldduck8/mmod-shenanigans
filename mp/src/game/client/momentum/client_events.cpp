@@ -11,10 +11,37 @@
 #include "util/mom_util.h"
 #include "momentum/ui/IMessageboxPanel.h"
 
-
 #include "tier0/memdbgon.h"
 
 extern IFileSystem *filesystem;
+
+void CMOMClientEvents::LevelInitPostEntity() 
+{
+    // Play a replay if we are in replay mode
+    if (ConVarRef("is_replay").GetInt() == 1)
+    {
+        /*
+        const char *mapname = MapName();
+        CMomReplayBase *pBestTime = g_pMomentumUtil->GetBestTime(mapname, ConVarRef("sv_tickrate").GetFloat());
+        if (pBestTime)
+        {
+            char runTime[MAX_PATH], runDate[MAX_PATH];
+            Q_snprintf(runDate, MAX_PATH, "%li", pBestTime->GetRunDate());
+            Q_snprintf(runTime, MAX_PATH, "%.3f", pBestTime->GetRunTime());
+
+            char command[MAX_PATH];
+            Q_snprintf(command, MAX_PATH, "mom_replay_play %s-%s-%s%s\n", pBestTime->GetMapName(), runDate, runTime,
+                       EXT_RECORDING_FILE);
+
+            engine->ClientCmd(command);
+        }
+        */
+        const char *currentReplay = ConVarRef("current_replay").GetString();
+        char command[MAX_PATH];
+        Q_snprintf(command, MAX_PATH, "mom_replay_play %s\n", currentReplay);
+        engine->ClientCmd(command);
+    }
+}
 
 void CMOMClientEvents::PostInit()
 {
