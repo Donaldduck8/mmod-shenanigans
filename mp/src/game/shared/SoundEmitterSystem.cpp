@@ -1438,7 +1438,7 @@ void AmbientVolumeCallback(IConVar *var, const char *oldString, float oldFloat)
         CAmbientSoundParameters ambientSoundParams = g_ambientSounds[i];
         ConVarRef ambientVol("volume_ambient");
 
-		Msg("The volume of ambient sound %s has been changed to %f\n", ambientSoundParams.samp, ambientVol.GetFloat());
+		// Msg("The volume of ambient sound %s has been changed to %f\n", ambientSoundParams.samp, ambientVol.GetFloat());
 
 		#if !defined(CLIENT_DLL)
 		// Client is hosting a local server

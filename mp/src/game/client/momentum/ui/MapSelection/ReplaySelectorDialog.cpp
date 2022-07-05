@@ -323,7 +323,6 @@ CDialogReplayInfo *CReplaySelectorDialog::OpenMapInfoDialog(IReplayList *gameLis
     //We're going to send just the map name to the CDialogMapInfo() constructor,
     //then to the server and populate it with leaderboard times, replays, personal bests, etc
     const char *pMapName = pMap->GetString("name", "");
-    Msg(pMapName);
     CDialogReplayInfo *gameDialog = new CDialogReplayInfo(nullptr, pMapName);
     gameDialog->SetParent(GetVParent());
     gameDialog->AddActionSignalTarget(this);

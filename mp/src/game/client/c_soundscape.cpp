@@ -1221,8 +1221,8 @@ void LoopingSoundsCallback(IConVar *var, const char *oldString, float oldFloat)
 
     for (int i = 0; i < g_SoundscapeSystem.m_loopingSounds.Size(); i++)
     {
-        Msg("The volume of loop sound %s has been changed to %f\n", g_SoundscapeSystem.m_loopingSounds[i].pWaveName,
-            loopVol.GetFloat());
+        // Msg("The volume of loop sound %s has been changed to %f\n", g_SoundscapeSystem.m_loopingSounds[i].pWaveName,
+        //    loopVol.GetFloat());
         if (g_SoundscapeSystem.m_loopingSounds[i].isAmbient)
         {
             g_SoundscapeSystem.m_loopingSounds[i].volumeCurrent = loopVol.GetFloat();
