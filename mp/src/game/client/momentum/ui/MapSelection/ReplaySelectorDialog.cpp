@@ -169,12 +169,6 @@ void CReplaySelectorDialog::SaveUserData()
     {
         m_pSavedData->SetString("MapList", "local");
     }
-    /*
-    else if (m_pGameList == m_pOnline)
-    {
-        m_pSavedData->SetString("MapList", "online");//MOM_TODO
-    }
-    */
 
     m_pSavedData->RemoveSubKey(m_pSavedData->FindKey("Filters")); // remove the saved subkey and add our subkey
     m_pSavedData->AddSubKey(m_pFilterData->MakeCopy());
@@ -289,7 +283,7 @@ CMapContextMenu *CReplaySelectorDialog::GetContextMenu(vgui::Panel *pPanel)
 // Purpose: begins the process of joining a server from a game list
 //			the game info dialog it opens will also update the game list
 //-----------------------------------------------------------------------------
-CDialogMapInfo *CReplaySelectorDialog::JoinGame(IMapList *gameList, unsigned int serverIndex)
+CDialogReplayInfo *CReplaySelectorDialog::JoinGame(IMapList *gameList, unsigned int serverIndex)
 {
     // open the game info dialog, then mark it to attempt to connect right away
     //CDialogMapInfo *gameDialog = OpenMapInfoDialog(gameList, serverIndex);
@@ -304,10 +298,10 @@ CDialogMapInfo *CReplaySelectorDialog::JoinGame(IMapList *gameList, unsigned int
 //-----------------------------------------------------------------------------
 // Purpose: joins a game by a specified IP, not attached to any game list
 //-----------------------------------------------------------------------------
-CDialogMapInfo *CReplaySelectorDialog::JoinGame(int serverIP, int serverPort)
+CDialogReplayInfo *CReplaySelectorDialog::JoinGame(int serverIP, int serverPort)
 {
     // open the game info dialog, then mark it to attempt to connect right away
-    CDialogMapInfo *gameDialog = OpenMapInfoDialog(serverIP, serverPort, serverPort);
+    CDialogReplayInfo *gameDialog = OpenMapInfoDialog(serverIP, serverPort, serverPort);
 
     // set the dialog name to be the server name
     gameDialog->Connect();
@@ -318,7 +312,7 @@ CDialogMapInfo *CReplaySelectorDialog::JoinGame(int serverIP, int serverPort)
 //-----------------------------------------------------------------------------
 // Purpose: opens a game info dialog from a game list
 //-----------------------------------------------------------------------------
-CDialogMapInfo *CReplaySelectorDialog::OpenMapInfoDialog(IReplayList *gameList, KeyValues *pMap)
+CDialogReplayInfo *CReplaySelectorDialog::OpenMapInfoDialog(IReplayList *gameList, KeyValues *pMap)
 {
     //mapstruct_t *pServer = gameList->GetMap(serverIndex);
     //if (!pServer)
@@ -329,7 +323,8 @@ CDialogMapInfo *CReplaySelectorDialog::OpenMapInfoDialog(IReplayList *gameList, 
     //We're going to send just the map name to the CDialogMapInfo() constructor,
     //then to the server and populate it with leaderboard times, replays, personal bests, etc
     const char *pMapName = pMap->GetString("name", "");
-    CDialogMapInfo *gameDialog = new CDialogMapInfo(nullptr, pMapName);
+    Msg(pMapName);
+    CDialogReplayInfo *gameDialog = new CDialogReplayInfo(nullptr, pMapName);
     gameDialog->SetParent(GetVParent());
     gameDialog->AddActionSignalTarget(this);
     gameDialog->Run(pMapName);
@@ -342,9 +337,9 @@ CDialogMapInfo *CReplaySelectorDialog::OpenMapInfoDialog(IReplayList *gameList, 
 //-----------------------------------------------------------------------------
 // Purpose: opens a game info dialog by a specified IP, not attached to any game list
 //-----------------------------------------------------------------------------
-CDialogMapInfo *CReplaySelectorDialog::OpenMapInfoDialog(int serverIP, uint16 connPort, uint16 queryPort)
+CDialogReplayInfo *CReplaySelectorDialog::OpenMapInfoDialog(int serverIP, uint16 connPort, uint16 queryPort)
 {
-    CDialogMapInfo *gameDialog = new CDialogMapInfo(nullptr, "");
+    CDialogReplayInfo *gameDialog = new CDialogReplayInfo(nullptr, "");
     gameDialog->AddActionSignalTarget(this);
     gameDialog->SetParent(GetVParent());
     gameDialog->Run("");
@@ -372,7 +367,7 @@ void CReplaySelectorDialog::CloseAllMapInfoDialogs()
 //-----------------------------------------------------------------------------
 // Purpose: finds a dialog
 //-----------------------------------------------------------------------------
-CDialogMapInfo *CReplaySelectorDialog::GetDialogGameInfoForFriend(uint64 ulSteamIDFriend)
+CDialogReplayInfo *CReplaySelectorDialog::GetDialogGameInfoForFriend(uint64 ulSteamIDFriend)
 {
     //FOR_EACH_VEC(m_vecMapInfoDialogs, i)
     //{
@@ -421,13 +416,7 @@ void CReplaySelectorDialog::OnConnectToGame(KeyValues *pMessageValues)
     m_CurrentConnection.m_NetAdr.SetIP(ip);
     m_CurrentConnection.m_NetAdr.SetQueryPort(queryPort);
     m_CurrentConnection.m_NetAdr.SetConnectionPort((unsigned short) connectionPort);
-#ifndef NO_STEAM
-    //if (m_pHistory && SteamMatchmaking())
-    //{
-    //    SteamMatchmaking()->AddFavoriteGame2(0, ::htonl(ip), connectionPort, queryPort, k_unFavoriteFlagHistory, time(NULL));
-    //    m_pHistory->SetRefreshOnReload();
-    //}
-#endif
+
     // tell the game info dialogs, so they can cancel if we have connected
     // to a server they were auto-retrying
     for (int i = 0; i < m_vecMapInfoDialogs.Count(); i++)

@@ -58,6 +58,7 @@ class MomentumUtil
     // Precision is miliseconds by default
     void FormatTime(float seconds, char *pOut, const int precision = 3, const bool fileName = false, const bool negativeTime = false) const;
 
+    void CreateScoreKeyvalues(const char *file, KeyValues *kv);
 
     CMomReplayBase *GetBestTime(const char *szMapName, float tickrate, uint32 flags = 0) const;
     bool GetRunComparison(const char *szMapName, const float tickRate, const int flags, RunCompare_t *into) const;

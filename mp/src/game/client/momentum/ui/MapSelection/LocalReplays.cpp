@@ -8,7 +8,7 @@ extern IFileSystem *filesystem;
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CLocalReplays::CLocalReplays(vgui::Panel *parent) :
-CBaseReplaysPage(parent, "LocalMaps")
+CBaseReplaysPage(parent, "LocalReplays")
 {
     m_bLoadedMaps = false;
 }
@@ -99,7 +99,6 @@ void CLocalReplays::FillMapstruct(replaystruct_t *m)
     if (pBestTime)
     {
         m->m_bCompleted = true;
-        Log("FOUND BEST TIME: %f\n", pBestTime->GetRunTime());
         g_pMomentumUtil->FormatTime(pBestTime->GetRunTime(), m->m_szBestTime);
     }
 }
@@ -112,39 +111,48 @@ inline bool ImageExists(const char *pMapName)
     return pStr ? true : false;
 }
 
+inline bool DemoExists(const char *pMapName)
+{
+    FileFindHandle_t found;
+    char path[MAX_PATH];
+    Q_snprintf(path, MAX_PATH, "%s/%s*%s", RECORDING_PATH, pMapName, EXT_RECORDING_FILE);
+    V_FixSlashes(path);
+
+    const char *pFoundFile = filesystem->FindFirstEx(path, "MOD", &found);
+    return pFoundFile ? true : false;
+}
+
 void CLocalReplays::GetNewMapList()
 {
     ClearMapList();
     //Populate the main list
     FileFindHandle_t found;
-    //MOM_TODO: make this by *.mom
+
     const char *pMapName = g_pFullFileSystem->FindFirstEx("maps/*.bsp", "GAME", &found);
     while (pMapName)
-    {       
-        //DevLog("FOUND MAP %s!\n", pMapName);
-        
-        replaydisplay_t map = replaydisplay_t();
+    {   
         replaystruct_t m = replaystruct_t();
-        map.m_bDoNotRefresh = true;
-
-        //Map name
         Q_FileBase(pMapName, m.m_szMapName, MAX_PATH);
-        //DevLog("Stripped name: %s\n", m.m_szMapName);
 
-        FillMapstruct(&m);
-
-        // Map image
-        if (ImageExists(m.m_szMapName))
+        // If a demo exists for a given map, add it to the replays list
+        if (DemoExists(m.m_szMapName))
         {
-            DevLog("FOUND IMAGE FOR %s!\n", m.m_szMapName);
-            char imagePath[MAX_PATH];
-            Q_snprintf(imagePath, MAX_PATH, "maps/%s", m.m_szMapName);
-            map.m_iMapImageIndex = m_pMapList->GetImageList()->AddImage(scheme()->GetImage(imagePath, false));
+            FillMapstruct(&m);
+            replaydisplay_t map = replaydisplay_t();
+            map.m_bDoNotRefresh = true;
+            map.m_mMap = m;
+
+            // Map image
+            if (ImageExists(m.m_szMapName))
+            {
+                DevLog("FOUND IMAGE FOR %s!\n", m.m_szMapName);
+                char imagePath[MAX_PATH];
+                Q_snprintf(imagePath, MAX_PATH, "maps/%s", m.m_szMapName);
+                map.m_iMapImageIndex = m_pMapList->GetImageList()->AddImage(scheme()->GetImage(imagePath, false));
+            }
+
+            m_vecReplays.AddToTail(map);
         }
-
-        map.m_mMap = m;
-        m_vecMaps.AddToTail(map);
-
         pMapName = g_pFullFileSystem->FindNext(found);
     }
     g_pFullFileSystem->FindClose(found);
@@ -157,9 +165,9 @@ void CLocalReplays::GetNewMapList()
 //-----------------------------------------------------------------------------
 void CLocalReplays::StartRefresh()
 {
-    FOR_EACH_VEC(m_vecMaps, i)
+    FOR_EACH_VEC(m_vecReplays, i)
     {
-        replaydisplay_t *pMap = &m_vecMaps[i];
+        replaydisplay_t *pMap = &m_vecReplays[i];
         if (!pMap) continue;
         replaystruct_t pMapInfo = pMap->m_mMap;
         // check filters

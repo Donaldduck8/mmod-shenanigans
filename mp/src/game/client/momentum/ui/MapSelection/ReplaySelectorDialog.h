@@ -44,22 +44,22 @@ public:
 
     // begins the process of joining a server from a game list
     // the game info dialog it opens will also update the game list
-    CDialogMapInfo *JoinGame(IMapList *gameList, unsigned int serverIndex);
+    CDialogReplayInfo *JoinGame(IMapList *gameList, unsigned int serverIndex);
 
     // joins a game by a specified IP, not attached to any game list
-    CDialogMapInfo *JoinGame(int serverIP, int serverPort);
+    CDialogReplayInfo *JoinGame(int serverIP, int serverPort);
 
-    CDialogMapInfo *OpenMapInfoDialog(IReplayList *gameList, KeyValues *pMap);
+    CDialogReplayInfo *OpenMapInfoDialog(IReplayList *gameList, KeyValues *pMap);
 
     // opens a game info dialog from a game list
-    CDialogMapInfo *OpenMapInfoDialog(IMapList *gameList, KeyValues *pMap);
+    CDialogReplayInfo *OpenMapInfoDialog(IMapList *gameList, KeyValues *pMap);
 
     // opens a game info dialog by a specified IP, not attached to any game list
-    CDialogMapInfo *OpenMapInfoDialog(int serverIP, uint16 connPort, uint16 queryPort);
+    CDialogReplayInfo *OpenMapInfoDialog(int serverIP, uint16 connPort, uint16 queryPort);
 
     // closes all the game info dialogs
     void CloseAllMapInfoDialogs();
-    CDialogMapInfo *GetDialogGameInfoForFriend(uint64 ulSteamIDFriend);
+    CDialogReplayInfo *GetDialogGameInfoForFriend(uint64 ulSteamIDFriend);
 
     // accessor to the filter save data
     KeyValues *GetFilterSaveData(const char *filterSet);
@@ -91,7 +91,7 @@ private:
 
 private:
     // list of all open game info dialogs
-    CUtlVector<DHANDLE<CDialogMapInfo> > m_vecMapInfoDialogs;
+    CUtlVector<DHANDLE<CDialogReplayInfo>> m_vecMapInfoDialogs;
 
     // pointer to current game list
     IReplayList *m_pGameList;

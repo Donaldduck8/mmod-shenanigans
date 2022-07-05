@@ -133,7 +133,7 @@ protected:
     vgui::Button *m_pRefreshQuick;
     vgui::ToggleButton *m_pFilter;
 
-    CUtlVector<replaydisplay_t> m_vecMaps;
+    CUtlVector<replaydisplay_t> m_vecReplays;
 
     int m_iServerRefreshCount;//MOM_TODO: change this to "maps found online" ?
 

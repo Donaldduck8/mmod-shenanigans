@@ -6,6 +6,7 @@
 #include "momentum/mom_shareddefs.h"
 #include "tier0/memdbgon.h"
 #include "run/mom_replay_manager.h"
+#include <time.h>
 
 extern IFileSystem *filesystem;
 
@@ -352,6 +353,38 @@ inline bool CheckReplayB(CMomReplayBase *pFastest, CMomReplayBase *pCheck, float
     }
 
     return false;
+}
+
+void MomentumUtil::CreateScoreKeyvalues(const char *file, KeyValues *kv)
+{
+    char pReplayPath[MAX_PATH];
+    char pReplayPathConsole[MAX_PATH];
+    V_ComposeFileName(RECORDING_PATH, file, pReplayPath, MAX_PATH);
+    V_ComposeFileName("", file, pReplayPathConsole, MAX_PATH);
+    CMomReplayBase *pBase = CMomReplayManager::LoadReplayFile(pReplayPath, false);
+
+    char runTime[MAX_PATH], runDate[MAX_PATH];
+
+    Q_snprintf(runDate, MAX_PATH, "%li", pBase->GetRunDate());
+    Q_snprintf(runTime, MAX_PATH, "%.3f", pBase->GetRunTime());
+
+    KeyValues *kvLocalTimeFormatted = new KeyValues(pReplayPath);
+
+    kvLocalTimeFormatted->SetString("replayPath", pReplayPathConsole);
+    kvLocalTimeFormatted->SetString("playerName", pBase->GetPlayerName());
+
+    g_pMomentumUtil->FormatTime(pBase->GetRunTime(), runDate);
+    kvLocalTimeFormatted->SetString("time", runTime); // Used for display
+
+    char dateString[64];
+    tm *local;
+    time_t date = pBase->GetRunDate();
+    local = localtime(&date);
+
+    strftime(dateString, sizeof(dateString), "%d/%m/%Y %H:%M:%S", local);
+    kvLocalTimeFormatted->SetString("Date", dateString);
+
+    kv->AddSubKey(kvLocalTimeFormatted);
 }
 
 //!!! NOTE: The value returned here MUST BE DELETED, otherwise you get a memory leak!

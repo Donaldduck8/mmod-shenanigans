@@ -256,7 +256,7 @@ void CBaseReplaysPage::CreateFilters()
 //-----------------------------------------------------------------------------
 void CBaseReplaysPage::LoadFilterSettings()
 {
-    KeyValues *filter = MapSelectorDialog().GetFilterSaveData(GetName());
+    KeyValues *filter = ReplaySelectorDialog().GetFilterSaveData(GetName());
 
     //Game-mode selection
     m_iGameModeFilter = filter->GetInt("gamemode", 0);
@@ -597,9 +597,9 @@ void CBaseReplaysPage::OnTextChanged(Panel *panel, const char *text)
 void CBaseReplaysPage::ApplyGameFilters()
 {
     // loop through all the maps checking filters
-    FOR_EACH_VEC(m_vecMaps, i)
+    FOR_EACH_VEC(m_vecReplays, i)
     {
-        replaydisplay_t &map = m_vecMaps[i];
+        replaydisplay_t &map = m_vecReplays[i];
         replaystruct_t* mapinfo = &map.m_mMap;
         //DevLog("CURRENTLY FILTERING %s\n", mapinfo->m_szMapName);
         if (!CheckPrimaryFilters(*mapinfo) || !CheckSecondaryFilters(*mapinfo))//MOM_TODO: change this to just one filter check?
@@ -694,7 +694,7 @@ void CBaseReplaysPage::UpdateFilterSettings()
     m_iMapLayoutFilter = m_pMapLayoutFilter->GetActiveItem();
 
     // copy filter settings into filter file
-    KeyValues *filter = MapSelectorDialog().GetFilterSaveData(GetName());
+    KeyValues *filter = ReplaySelectorDialog().GetFilterSaveData(GetName());
 
     filter->SetInt("gamemode", m_iGameModeFilter);
     filter->SetString("map", m_szMapFilter);
@@ -702,7 +702,7 @@ void CBaseReplaysPage::UpdateFilterSettings()
     filter->SetBool("HideCompleted", m_bFilterHideCompleted);
     filter->SetInt("maplayout", m_iMapLayoutFilter);
 
-    MapSelectorDialog().SaveUserData();
+    ReplaySelectorDialog().SaveUserData();
     OnSaveFilter(filter);
 
     RecalculateFilterString();
@@ -882,7 +882,7 @@ void CBaseReplaysPage::SetRefreshing(bool state)
 
     if (state)
     {
-        MapSelectorDialog().UpdateStatusText("#MOM_MapSelector_SearchingForMaps");
+        ReplaySelectorDialog().UpdateStatusText("#MOM_MapSelector_SearchingForMaps");
 
         // clear message in panel
         m_pMapList->SetEmptyListText("");
@@ -892,7 +892,7 @@ void CBaseReplaysPage::SetRefreshing(bool state)
     }
     else
     {
-        MapSelectorDialog().UpdateStatusText("");
+        ReplaySelectorDialog().UpdateStatusText("");
         if (SupportsItem(IReplayList::GETNEWLIST))
         {
             m_pRefreshAll->SetText("#MOM_MapSelector_Search");
@@ -1108,7 +1108,7 @@ void CBaseReplaysPage::StartRefresh()
 //-----------------------------------------------------------------------------
 void CBaseReplaysPage::ClearMapList()
 {
-    m_vecMaps.RemoveAll();
+    m_vecReplays.RemoveAll();
 
     //m_mapServers.RemoveAll();//MOM_TODO: remove this?
     //m_mapServerIP.RemoveAll();
@@ -1173,25 +1173,17 @@ void CBaseReplaysPage::OnPageHide()
 //-----------------------------------------------------------------------------
 // Purpose: initiates map loading
 //-----------------------------------------------------------------------------
+
+ConVar is_replay("is_replay", "0", FCVAR_HIDDEN | FCVAR_ARCHIVE);
 void CBaseReplaysPage::OnMapStart()
 {
     if (!m_pMapList->GetSelectedItemsCount())
         return;
 
-    // get the map
-    //MOM_TODO: get the mapstruct_t data instead of KVs here
-    KeyValues *kv = m_pMapList->GetItem(m_pMapList->GetSelectedItem(0));
-    // Stop the current search (online maps)
-    StopRefresh();
-    
-    //MOM_TODO: set global gamemode, which sets tick settings etc
-    //TickSet::SetTickrate(MOMGM_BHOP);
-    //engine->ServerCmd(VarArgs("mom_gamemode %i", MOMGM_BHOP));//MOM_TODO this is testing, replace with m.m_iGamemode
+    is_replay.SetValue(1);
 
-    // Start the map
-    engine->ExecuteClientCmd("progress_enable\n");
-    engine->ExecuteClientCmd(VarArgs("map %s\n", kv->GetString("map")));
-    //engine->ExecuteClientCmd(VarArgs("mom_replay_play %s\n", kv->GetString("map")));
+    KeyValues *pMap = m_pMapList->GetItem(m_pMapList->GetSelectedItem(0));
+    ReplaySelectorDialog().OpenMapInfoDialog(this, pMap);
 }
 
 //-----------------------------------------------------------------------------
@@ -1215,5 +1207,5 @@ void CBaseReplaysPage::OnViewMapInfo()
     // Stop the current refresh
     StopRefresh();
     // View the map info
-    MapSelectorDialog().OpenMapInfoDialog(this, pMap);
+    ReplaySelectorDialog().OpenMapInfoDialog(this, pMap);
 }

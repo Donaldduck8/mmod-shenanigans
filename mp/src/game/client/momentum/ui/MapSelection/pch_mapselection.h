@@ -53,6 +53,7 @@
 #include "ReplaySelector.h"
 #include "MapContextMenu.h"
 #include "MapInfoDialog.h"
+#include "ReplayInfoDialog.h"
 #include "BaseMapsPage.h"
 #include "BaseReplaysPage.h"
 #include "LocalMaps.h"
