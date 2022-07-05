@@ -1179,20 +1179,16 @@ void CBaseMapsPage::OnMapStart()
         return;
 
     // get the map
-    //MOM_TODO: get the mapstruct_t data instead of KVs here
     KeyValues *kv = m_pMapList->GetItem(m_pMapList->GetSelectedItem(0));
+
     // Stop the current search (online maps)
     StopRefresh();
-    
-    //MOM_TODO: set global gamemode, which sets tick settings etc
-    //TickSet::SetTickrate(MOMGM_BHOP);
-    //engine->ServerCmd(VarArgs("mom_gamemode %i", MOMGM_BHOP));//MOM_TODO this is testing, replace with m.m_iGamemode
 
     // Start the map
-
+    // We are loading a normal map, not a replay. Set this to 0.
+    ConVarRef("is_replay").SetValue(0);
     engine->ExecuteClientCmd("progress_enable\n");
     engine->ExecuteClientCmd(VarArgs("map %s\n", kv->GetString("map")));
-    ConVarRef ("is_replay").SetValue(1);
 }
 
 //-----------------------------------------------------------------------------
