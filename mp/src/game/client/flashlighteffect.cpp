@@ -327,10 +327,18 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 		state.m_fVerticalFOVDegrees = r_flashlightfov.GetFloat();
 	}
 
+	float flashlightRed = r_flashlightcolor_r.GetFloat();
+    float flashlightGreen = r_flashlightcolor_g.GetFloat();
+    float flashlightBlue = r_flashlightcolor_b.GetFloat();
+
+	float maximumColorValue = max(max(flashlightRed, flashlightGreen), flashlightBlue);
+
+	flashlightRed, flashlightGreen, flashlightBlue /= maximumColorValue;
+
 	state.m_fConstantAtten = r_flashlightconstant.GetFloat();
-    state.m_Color[0] = r_flashlightcolor_r.GetFloat();
-    state.m_Color[1] = r_flashlightcolor_g.GetFloat();
-    state.m_Color[2] = r_flashlightcolor_b.GetFloat();
+    state.m_Color[0] = flashlightRed;
+    state.m_Color[1] = flashlightGreen;
+    state.m_Color[2] = flashlightBlue;
 	state.m_Color[3] = r_flashlightambient.GetFloat();
 	state.m_NearZ = r_flashlightnear.GetFloat() + m_flDistMod;	// Push near plane out so that we don't clip the world when the flashlight pulls back 
 	state.m_FarZ = r_flashlightfar.GetFloat();
