@@ -28,15 +28,15 @@ class CTimerData
 {
 public:
 	// int m_iZoneCount;
-	int m_iStartTick, m_iEndTick;
-	int m_iLastZone;
-	time_t m_iLastRunDate;
+	int m_iStartTick, m_iEndTick = 0;
+	int m_iLastZone = 0;
+	time_t m_iLastRunDate = 0;
 	bool m_bIsRunning = false;
 
-	Checkpoint* m_pStartZoneMark;
+	Checkpoint *m_pStartZoneMark = nullptr;
 
-	CHandle<CTriggerCheckpoint> m_pCurrentCheckpoint;
-	CHandle<CTriggerStage> m_pCurrentZone; // MOM_TODO: Change to be the generic Zone trigger
+	CHandle<CTriggerCheckpoint> m_pCurrentCheckpoint = nullptr;
+	CHandle<CTriggerStage> m_pCurrentZone = nullptr; // MOM_TODO: Change to be the generic Zone trigger
 
 	// PRECISION FIX:
 	// this works by adding the starting offset to the final time, since the timer starts after we actually exit the
