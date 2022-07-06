@@ -33,17 +33,17 @@ void CTriggerStage::StartTouch(CBaseEntity *pOther)
     if (pPlayer)
     {
         // Set the current stage to this
-        g_pMomentumTimer->SetCurrentZone(this);
+        g_pMomentumTimer->SetCurrentZone(pPlayer, this);
         // Set player run data
         pPlayer->m_RunData.m_bIsInZone = true;
         pPlayer->m_RunData.m_iCurrentZone = stageNum;
         stageEvent = gameeventmanager->CreateEvent("zone_enter");
-        if (g_pMomentumTimer->IsRunning())
+        if (g_pMomentumTimer->IsRunning(pPlayer))
         {
             pPlayer->m_RunStats.SetZoneExitSpeed(stageNum - 1, pPlayer->GetLocalVelocity().Length(),
                                                  pPlayer->GetLocalVelocity().Length2D());
             g_pMomentumTimer->CalculateTickIntervalOffset(pPlayer, g_pMomentumTimer->ZONETYPE_END);
-            pPlayer->m_RunStats.SetZoneEnterTime(stageNum, g_pMomentumTimer->CalculateStageTime(stageNum));
+            pPlayer->m_RunStats.SetZoneEnterTime(stageNum, g_pMomentumTimer->CalculateStageTime(pPlayer, stageNum));
             pPlayer->m_RunStats.SetZoneTime(stageNum - 1, pPlayer->m_RunStats.GetZoneEnterTime(stageNum) -
                                                               pPlayer->m_RunStats.GetZoneEnterTime(stageNum - 1));
         }
@@ -74,7 +74,7 @@ void CTriggerStage::EndTouch(CBaseEntity *pOther)
     if (pPlayer)
     {
         // Timer won't be running if it's the start trigger
-        if ((stageNum == 1 || g_pMomentumTimer->IsRunning()) && !pPlayer->m_bHasPracticeMode)
+        if ((stageNum == 1 || g_pMomentumTimer->IsRunning(pPlayer)) && !pPlayer->m_bHasPracticeMode)
         {
             // This handles both the start and stage triggers
             g_pMomentumTimer->CalculateTickIntervalOffset(pPlayer, g_pMomentumTimer->ZONETYPE_START);
@@ -128,7 +128,7 @@ void CTriggerTimerStart::EndTouch(CBaseEntity *pOther)
 
         // surf or other gamemodes has timer start on exiting zone, bhop timer starts when the player jumps
         // do not start timer if player is in practice mode or it's already running.
-        if (!g_pMomentumTimer->IsRunning() && !pPlayer->m_bHasPracticeMode && !bCheating && !pPlayer->IsUsingCPMenu())
+        if (!g_pMomentumTimer->IsRunning(pPlayer) && !pPlayer->m_bHasPracticeMode && !bCheating && !pPlayer->IsUsingCPMenu())
         {
             if (IsLimitingSpeed() && pPlayer->DidPlayerBhop())
             {
@@ -142,9 +142,9 @@ void CTriggerTimerStart::EndTouch(CBaseEntity *pOther)
                     pOther->SetAbsVelocity(Vector(vel2D.x, vel2D.y, velocity.z));
                 }
             }
-            g_pMomentumTimer->Start(gpGlobals->tickcount);
+            g_pMomentumTimer->Start(pPlayer, gpGlobals->tickcount);
             // The Start method could return if CP menu or prac mode is activated here
-            if (g_pMomentumTimer->IsRunning())
+            if (g_pMomentumTimer->IsRunning(pPlayer))
             {
                 // Used for trimming later on
                 if (g_ReplaySystem->GetReplayManager()->Recording())
@@ -152,7 +152,7 @@ void CTriggerTimerStart::EndTouch(CBaseEntity *pOther)
                     g_ReplaySystem->SetTimerStartTick(gpGlobals->tickcount);
                 }
 
-                pPlayer->m_RunData.m_bTimerRunning = g_pMomentumTimer->IsRunning();
+                pPlayer->m_RunData.m_bTimerRunning = g_pMomentumTimer->IsRunning(pPlayer);
                 // Used for spectating later on
                 pPlayer->m_RunData.m_iStartTick = gpGlobals->tickcount;
             }
@@ -206,10 +206,10 @@ void CTriggerTimerStart::StartTouch(CBaseEntity *pOther)
         pPlayer->m_RunData.m_flLastJumpVel = 0; // also reset last jump velocity when we enter the start zone
         pPlayer->m_RunData.m_flRunTime = 0.0f;  // MOM_TODO: Do we want to reset this?
 
-        if (g_pMomentumTimer->IsRunning())
+        if (g_pMomentumTimer->IsRunning(pPlayer))
         {
-            g_pMomentumTimer->Stop(false); // Handles stopping replay recording as well
-            g_pMomentumTimer->DispatchResetMessage();
+            g_pMomentumTimer->Stop(pPlayer, false); // Handles stopping replay recording as well
+            g_pMomentumTimer->DispatchResetMessage(pPlayer);
             // lower the player's speed if they try to jump back into the start zone
         }
 
@@ -220,7 +220,7 @@ void CTriggerTimerStart::StartTouch(CBaseEntity *pOther)
         }
         else
         {
-            g_ReplaySystem->StopRecording(true, false);
+            g_ReplaySystem->StopRecording(pPlayer, true, false);
             g_ReplaySystem->BeginRecording(pPlayer);
         }
     }
@@ -296,7 +296,7 @@ void CTriggerTimerStop::StartTouch(CBaseEntity *pOther)
         CMomentumPlayer *pPlayer = ToCMOMPlayer(pOther);
 
         g_pMomentumTimer->SetEndTrigger(this);
-        if (g_pMomentumTimer->IsRunning() && !pPlayer->IsWatchingReplay())
+        if (g_pMomentumTimer->IsRunning(pPlayer) && !pPlayer->IsWatchingReplay())
         {
             int zoneNum = pPlayer->m_RunData.m_iCurrentZone;
 
@@ -317,7 +317,7 @@ void CTriggerTimerStop::StartTouch(CBaseEntity *pOther)
             }
 
             // This is needed for the final stage
-            pPlayer->m_RunStats.SetZoneTime(zoneNum, g_pMomentumTimer->GetCurrentTime() -
+            pPlayer->m_RunStats.SetZoneTime(zoneNum, g_pMomentumTimer->GetCurrentTime(pPlayer) -
                                                          pPlayer->m_RunStats.GetZoneEnterTime(zoneNum));
 
             // Ending velocity checks
@@ -336,8 +336,8 @@ void CTriggerTimerStop::StartTouch(CBaseEntity *pOther)
             pPlayer->m_RunStats.SetZoneExitSpeed(0, endvel, endvel2D);
 
             // Stop the timer
-            g_pMomentumTimer->Stop(true);
-            pPlayer->m_RunData.m_flRunTime = g_pMomentumTimer->GetLastRunTime();
+            g_pMomentumTimer->Stop(pPlayer, true);
+            pPlayer->m_RunData.m_flRunTime = g_pMomentumTimer->GetLastRunTime(pPlayer);
             // The map is now finished, show the mapfinished panel
             pPlayer->m_RunData.m_bMapFinished = true;
             pPlayer->m_RunData.m_bTimerRunning = false;
@@ -413,7 +413,8 @@ void CTriggerCheckpoint::StartTouch(CBaseEntity *pOther)
     BaseClass::StartTouch(pOther);
     if (pOther->IsPlayer())
     {
-        g_pMomentumTimer->SetCurrentCheckpointTrigger(this);
+		CMomentumPlayer* pPlayer = ToCMOMPlayer(pOther);
+        g_pMomentumTimer->SetCurrentCheckpointTrigger(pPlayer, this);
         g_pMomentumTimer->RemoveAllOnehopsFromList();
     }
 }
@@ -426,10 +427,15 @@ BEGIN_DATADESC(CFilterCheckpoint)
 DEFINE_KEYFIELD(m_iCheckpointNumber, FIELD_INTEGER, "checkpoint")
 END_DATADESC();
 
+// TRIKZ NETWORK TIMERS: Wtf goin on
 bool CFilterCheckpoint::PassesFilterImpl(CBaseEntity *pCaller, CBaseEntity *pEntity)
 {
-    return (g_pMomentumTimer->GetCurrentCheckpoint() &&
-            g_pMomentumTimer->GetCurrentCheckpoint()->GetCheckpointNumber() >= m_iCheckpointNumber);
+	if (pCaller->IsPlayer()) {
+		CMomentumPlayer* pPlayer = ToCMOMPlayer(pCaller);
+		return (g_pMomentumTimer->GetCurrentCheckpoint(pPlayer) &&
+			g_pMomentumTimer->GetCurrentCheckpoint(pPlayer)->GetCheckpointNumber() >= m_iCheckpointNumber);
+	}
+	return false;
 }
 //----------------------------------------------------------------------------------------------
 
@@ -501,7 +507,11 @@ LINK_ENTITY_TO_CLASS(trigger_momentum_teleport_checkpoint, CTriggerTeleportCheck
 
 void CTriggerTeleportCheckpoint::StartTouch(CBaseEntity *pOther)
 {
-    SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint());
+	if (pOther->IsPlayer()) {
+		CMomentumPlayer* pPlayer = ToCMOMPlayer(pOther);
+		SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint(pPlayer));
+	}
+    
     BaseClass::StartTouch(pOther);
 }
 //-----------------------------------------------------------------------------------------------
@@ -525,7 +535,8 @@ void CTriggerOnehop::StartTouch(CBaseEntity *pOther)
         m_fStartTouchedTime = gpGlobals->realtime;
         if (g_pMomentumTimer->FindOnehopOnList(this) != (-1))
         {
-            SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint());
+			CMomentumPlayer* pPlayer = ToCMOMPlayer(pOther);
+            SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint(pPlayer));
             BaseClass::StartTouch(pOther); // Does the teleporting
         }
         else
@@ -549,12 +560,15 @@ void CTriggerOnehop::StartTouch(CBaseEntity *pOther)
 
 void CTriggerOnehop::Think()
 {
-    CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
-    if (pPlayer && m_fStartTouchedTime > 0 && IsTouching(pPlayer) && gpGlobals->realtime - m_fStartTouchedTime >= m_fMaxHoldSeconds)
-    {
-        SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint());
-        BaseClass::StartTouch(pPlayer);
-    }
+	for (int i = 0; i < gpGlobals->maxClients; i++) {
+		CMomentumPlayer* pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+		if (pPlayer && m_fStartTouchedTime > 0 && IsTouching(pPlayer) && gpGlobals->realtime - m_fStartTouchedTime >= m_fMaxHoldSeconds)
+		{
+			SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint(pPlayer));
+			BaseClass::StartTouch(pPlayer);
+		}
+		// TRIKZ NETWORK TIMERS: IDK WHAT SETDESTINATIONENT DOES LMAOOOO THIS IS PROBABLY AN ISSUE
+	}
 }
 //-----------------------------------------------------------------------------------------------
 
@@ -596,12 +610,15 @@ void CTriggerMultihop::EndTouch(CBaseEntity *pOther)
 
 void CTriggerMultihop::Think()
 {
-    CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
-    if (pPlayer && m_fStartTouchedTime > 0 && IsTouching(pPlayer) && gpGlobals->realtime - m_fStartTouchedTime >= m_fMaxHoldSeconds)
-    {
-        SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint());
-        BaseClass::StartTouch(pPlayer);
-    }
+	for (int i = 0; i < gpGlobals->maxClients; i++) {
+		CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+		if (pPlayer && m_fStartTouchedTime > 0 && IsTouching(pPlayer) && gpGlobals->realtime - m_fStartTouchedTime >= m_fMaxHoldSeconds)
+		{
+			SetDestinationEnt(g_pMomentumTimer->GetCurrentCheckpoint(pPlayer));
+			BaseClass::StartTouch(pPlayer);
+		}
+	}
+
 }
 //-----------------------------------------------------------------------------------------------
 

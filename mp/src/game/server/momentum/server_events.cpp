@@ -118,13 +118,20 @@ void CMOMServerEvents::FrameUpdatePreEntityThink()
         UTIL_AmbientSoundVolume(int(ambientVol.GetFloat() * 100));
     }
 
+    // TRIKZ NETWORK TIMERS: This seems like it could just loop over all players
     if (!g_pMomentumTimer->GotCaughtCheating())
     {
         ConVarRef cheatsRef("sv_cheats");
         if (cheatsRef.GetBool())
         {
             g_pMomentumTimer->SetCheating(true);
-            g_pMomentumTimer->Stop(false);
+
+			for (int i = 0; i < gpGlobals->maxClients; i++) {
+				CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+				if (pPlayer)
+					g_pMomentumTimer->Stop(pPlayer, false);
+			}
+            
         }
     }
 }

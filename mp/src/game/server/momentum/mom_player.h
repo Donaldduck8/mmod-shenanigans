@@ -232,7 +232,20 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
     void Teleport(const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity) OVERRIDE;
     void CreateTrail();
     void RemoveTrail();
+    /*
+    int m_iStartTick, m_iEndTick;
+    int m_iLastZone;
+    time_t m_iLastRunDate;
+    bool m_bIsRunning;
 
+    Checkpoint *m_pStartZoneMark;
+
+    float m_flTickOffsetFix[MAX_STAGES]; // index 0 = endzone, 1 = startzone, 2 = stage 2, 3 = stage3, etc
+    float m_flZoneEnterTime[MAX_STAGES];
+
+    float m_flDistFixTraceCorners[8]; // array of floats representing the trace distance from each corner of the
+                                      // player's collision hull
+                                      */
   private:
     CountdownTimer m_ladderSurpressionTimer;
     CUtlVector<Checkpoint *> m_rcCheckpoints;

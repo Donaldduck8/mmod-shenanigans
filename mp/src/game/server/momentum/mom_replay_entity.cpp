@@ -536,6 +536,7 @@ void CMomentumReplayGhostEntity::SetGhostColor(const CCommand &args)
     }
 }
 
+// TRIKZ NETWORK TIMERS: Must be given a player
 void CMomentumReplayGhostEntity::StartTimer(int m_iStartTick)
 {
     m_RunData.m_iStartTick = m_iStartTick;
@@ -546,6 +547,7 @@ void CMomentumReplayGhostEntity::StartTimer(int m_iStartTick)
     }
 }
 
+// TRIKZ NETWORK TIMERS: Must be given a player
 void CMomentumReplayGhostEntity::StopTimer()
 {
     if (m_pPlayerSpectator && m_pPlayerSpectator->GetReplayEnt() == this)

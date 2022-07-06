@@ -5,9 +5,8 @@
 
 #include "tier0/memdbgon.h"
 
-void CMomentumTimer::Start(int start)
+void CMomentumTimer::Start(CMomentumPlayer* pPlayer, int start)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (!pPlayer)
         return;
     // MOM_TODO: Allow it based on gametype
@@ -15,13 +14,16 @@ void CMomentumTimer::Start(int start)
         return;
     if (ConVarRef("mom_zone_edit").GetBool())
         return;
-    m_iStartTick = start;
-    m_iEndTick = 0;
-    m_iLastRunDate = 0;
-    SetRunning(true);
+
+	CTimerData* pData = GetTimerDataForPlayer(pPlayer);
+
+	pData->m_iStartTick = start;
+	pData->m_iEndTick = 0;
+	pData->m_iLastRunDate = 0;
+    SetRunning(pPlayer, true);
 
     // Dispatch a start timer message for the local player
-    DispatchTimerStateMessage(pPlayer, m_bIsRunning);
+    DispatchTimerStateMessage(pPlayer, true);
 
     IGameEvent *timeStartEvent = gameeventmanager->CreateEvent("timer_state");
 
@@ -56,18 +58,20 @@ void CMomentumTimer::Start(int start)
 //    Log("\n");
 //}
 
-void CMomentumTimer::Stop(bool endTrigger /* = false */)
+void CMomentumTimer::Stop(CMomentumPlayer* pPlayer, bool endTrigger /* = false */)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     IGameEvent *timerStateEvent = gameeventmanager->CreateEvent("timer_state");
+
 
     if (pPlayer)
     {
+		CTimerData* pData = GetTimerDataForPlayer(pPlayer);
+
         // Set our end time and date
         if (endTrigger && !m_bWereCheatsActivated)
         {
-            m_iEndTick = gpGlobals->tickcount;
-            time(&m_iLastRunDate); // Set the last run date for the replay
+			pData->m_iEndTick = gpGlobals->tickcount;
+            time(&pData->m_iLastRunDate); // Set the last run date for the replay
         }
 
         // Fire off the timer_state event
@@ -81,10 +85,10 @@ void CMomentumTimer::Stop(bool endTrigger /* = false */)
 
     // Stop replay recording, if there was any
     if (g_ReplaySystem->GetReplayManager()->Recording())
-        g_ReplaySystem->StopRecording(!endTrigger || m_bWereCheatsActivated, endTrigger);
+        g_ReplaySystem->StopRecording(pPlayer, !endTrigger || m_bWereCheatsActivated, endTrigger);
 
-    SetRunning(false);
-    DispatchTimerStateMessage(pPlayer, m_bIsRunning);
+    SetRunning(pPlayer, false);
+    DispatchTimerStateMessage(pPlayer, false);
 }
 
 void CMomentumTimer::DispatchMapInfo() const
@@ -105,18 +109,30 @@ void CMomentumTimer::LevelInitPostEntity()
     SetGameModeConVars();
     m_bWereCheatsActivated = false;
     RequestZoneCount();
-    ClearStartMark();
+
+	CMomentumPlayer* pPlayer;
+	for (int i = 0; i < gpGlobals->maxClients; i++) {
+		pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+		ClearStartMark(pPlayer);
+	}
 }
 
 void CMomentumTimer::LevelShutdownPreEntity()
 {
-    if (IsRunning())
-        Stop(false);
+	CMomentumPlayer* pPlayer;
+	for (int i = 0; i < gpGlobals->maxClients; i++) {
+		pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+
+		if (IsRunning(pPlayer)) {
+			Stop(pPlayer, false);
+		}
+		SetCurrentZone(pPlayer, nullptr);
+		SetCurrentCheckpointTrigger(pPlayer, nullptr);
+		ClearStartMark(pPlayer);
+	}
+
     m_bWereCheatsActivated = false;
-    SetCurrentCheckpointTrigger(nullptr);
     SetStartTrigger(nullptr);
-    SetCurrentZone(nullptr);
-    ClearStartMark();
 }
 
 // MOM_TODO: This needs to update to include checkpoint triggers placed in linear
@@ -135,22 +151,29 @@ void CMomentumTimer::RequestZoneCount()
     m_iZoneCount = iCount;
 }
 // This function is called every time CTriggerStage::StartTouch is called
-float CMomentumTimer::CalculateStageTime(int stage)
+float CMomentumTimer::CalculateStageTime(CMomentumPlayer *pPlayer, int stage)
 {
-    if (stage > m_iLastZone)
+	// TRIKZ NETWORK TIMERS: HELP
+	if (!pPlayer) {
+		return 0;
+	}
+
+	CTimerData* pData = GetTimerDataForPlayer(pPlayer);
+
+    if (stage > pData->m_iLastZone)
     {
-        float originalTime = GetCurrentTime();
+        float originalTime = GetCurrentTime(pPlayer);
         // If the stage is a new one, we store the time we entered this stage in
-        m_flZoneEnterTime[stage] = stage == 1 ? 0.0f : // Always returns 0 for first stage.
-                                       originalTime + m_flTickOffsetFix[stage - 1];
-        DevLog("Original Time: %f\n New Time: %f\n", originalTime, m_flZoneEnterTime[stage]);
+		pData->m_flZoneEnterTime[stage] = stage == 1 ? 0.0f : // Always returns 0 for first stage.
+                                       originalTime + pData->m_flTickOffsetFix[stage - 1]; // Please learn how to format your code :)
+        DevLog("Original Time: %f\n New Time: %f\n", originalTime, pData->m_flZoneEnterTime[stage]);
     }
-    m_iLastZone = stage;
-    return m_flZoneEnterTime[stage];
+	pData->m_iLastZone = stage;
+    return pData->m_flZoneEnterTime[stage];
 }
-void CMomentumTimer::DispatchResetMessage()
+void CMomentumTimer::DispatchResetMessage(CMomentumPlayer *pPlayer)
 {
-    CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
+    CSingleUserRecipientFilter user(pPlayer);
     user.MakeReliable();
     UserMessageBegin(user, "Timer_Reset");
     MessageEnd();
@@ -168,12 +191,11 @@ void CMomentumTimer::DispatchTimerStateMessage(CBasePlayer *pPlayer, bool isRunn
     }
 }
 
-void CMomentumTimer::SetRunning(bool isRunning)
+void CMomentumTimer::SetRunning(CMomentumPlayer* pPlayer, bool isRunning)
 {
-    m_bIsRunning = isRunning;
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer)
     {
+		GetTimerDataForPlayer(pPlayer)->m_bIsRunning = isRunning;
         pPlayer->m_RunData.m_bTimerRunning = isRunning;
     }
 }
@@ -181,6 +203,7 @@ void CMomentumTimer::CalculateTickIntervalOffset(CMomentumPlayer *pPlayer, const
 {
     if (!pPlayer)
         return;
+
     Ray_t ray;
     Vector rewoundTracePoint, tracePoint, velocity = pPlayer->GetLocalVelocity();
     // Because trigger touch is calculated using collision hull rather than the player's origin (which is based on their
@@ -250,14 +273,17 @@ void CMomentumTimer::CalculateTickIntervalOffset(CMomentumPlayer *pPlayer, const
         CTimeTriggerTraceEnum endTriggerTraceEnum(&ray, pPlayer->GetAbsVelocity(), zoneType, i);
         enginetrace->EnumerateEntities(ray, true, &endTriggerTraceEnum);
     }
+
+	CTimerData* pData = GetTimerDataForPlayer(pPlayer);
+
     // we calculate the smallest trace distance...
     float smallestDist = FLT_MAX;
     int smallestCornerNum = -1;
     for (int i = 0; i < 8; i++)
     {
-        if (m_flDistFixTraceCorners[i] < smallestDist && !g_pMomentumUtil->FloatEquals(m_flDistFixTraceCorners[i], 0.0f))
+        if (pData->m_flDistFixTraceCorners[i] < smallestDist && !g_pMomentumUtil->FloatEquals(pData->m_flDistFixTraceCorners[i], 0.0f))
         {
-            smallestDist = m_flDistFixTraceCorners[i];
+            smallestDist = pData->m_flDistFixTraceCorners[i];
             smallestCornerNum = i;
         }
     }
@@ -269,13 +295,13 @@ void CMomentumTimer::CalculateTickIntervalOffset(CMomentumPlayer *pPlayer, const
         DevLog("Smallest time offset was %f seconds, traced from bbox corner %i (trace distance: %f units)\n", offset,
                smallestCornerNum, smallestDist);
         // ...and set the interval offset as this smallest time
-        SetIntervalOffset(GetCurrentZoneNumber(), offset);
+        SetIntervalOffset(pPlayer, GetCurrentZoneNumber(pPlayer), offset);
     }
 
     // ..then reset the flCorners array
     for (int i = 0; i < 8; i++)
     {
-        m_flDistFixTraceCorners[i] = 0.0f;
+		pData->m_flDistFixTraceCorners[i] = 0.0f;
     }
 }
 
@@ -306,7 +332,8 @@ bool CTimeTriggerTraceEnum::EnumEntity(IHandleEntity *pHandleEntity)
 
         if (!g_pMomentumUtil->FloatEquals(dist, 0.0f))
         {
-            g_pMomentumTimer->m_flDistFixTraceCorners[m_iCornerNumber] = dist;
+            // TRIKZ NETWORK TIMERS: Dunno what this does lol
+            //g_pMomentumTimer->m_flDistFixTraceCorners[m_iCornerNumber] = dist;
         }
 
         return false; // Stop the enumeration, we hit our target
@@ -350,29 +377,35 @@ void CMomentumTimer::SetGameModeConVars()
            sv_airaccelerate.GetInt(), sv_maxspeed.GetInt());
 }
 
-void CMomentumTimer::CreateStartMark()
+void CMomentumTimer::CreateStartMark(CMomentumPlayer *pPlayer)
 {
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+    // CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (!pPlayer)
         return;
+
+	CTimerData *pData = GetTimerDataForPlayer(pPlayer);
 
     CTriggerTimerStart *start = GetStartTrigger();
     if (start && start->IsTouching(pPlayer))
     {
         // Rid the previous one
-        ClearStartMark();
+        ClearStartMark(pPlayer);
 
-        m_pStartZoneMark = pPlayer->CreateCheckpoint();
-        m_pStartZoneMark->vel = vec3_origin; // Rid the velocity
+		pData->m_pStartZoneMark = pPlayer->CreateCheckpoint();
+		pData->m_pStartZoneMark->vel = vec3_origin; // Rid the velocity
         DevLog("Successfully created a starting mark!\n");
     }
 }
 
-void CMomentumTimer::ClearStartMark()
+void CMomentumTimer::ClearStartMark(CMomentumPlayer* pPlayer)
 {
-    if (m_pStartZoneMark)
-        delete m_pStartZoneMark;
-    m_pStartZoneMark = nullptr;
+	if (!pPlayer)
+		return;
+
+	CTimerData* pData = GetTimerDataForPlayer(pPlayer);
+    if (pData->m_pStartZoneMark)
+        delete pData->m_pStartZoneMark;
+	pData->m_pStartZoneMark = nullptr;
 }
 
 // Practice mode that stops the timer and allows the player to noclip.
@@ -383,7 +416,7 @@ void CMomentumTimer::EnablePractice(CMomentumPlayer *pPlayer)
     ClientPrint(pPlayer, HUD_PRINTCONSOLE, "Practice mode ON!\n");
     pPlayer->AddEFlags(EFL_NOCLIP_ACTIVE);
     pPlayer->m_bHasPracticeMode = true;
-    Stop(false);
+    Stop(pPlayer, false);
 }
 void CMomentumTimer::DisablePractice(CMomentumPlayer *pPlayer)
 {
@@ -420,7 +453,7 @@ class CTimerCommands
         CTriggerTimerStart *start = g_pMomentumTimer->GetStartTrigger();
         if (start)
         {
-            Checkpoint *pStartMark = g_pMomentumTimer->GetStartMark();
+            Checkpoint *pStartMark = g_pMomentumTimer->GetStartMark(pPlayer);
             if (pStartMark)
             {
                 pPlayer->TeleportToCheckpoint(pStartMark);
@@ -445,8 +478,10 @@ class CTimerCommands
 
     static void ResetToCheckpoint()
     {
-        CTriggerStage *stage = g_pMomentumTimer->GetCurrentStage();
         CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
+
+		CTriggerStage* stage = g_pMomentumTimer->GetCurrentStage(pPlayer);
+
         if (stage && pPlayer && pPlayer->m_bAllowUserTeleports)
         {
             pPlayer->Teleport(&stage->WorldSpaceCenter(), nullptr, &vec3_origin);
@@ -476,13 +511,22 @@ class CTimerCommands
             g_pMomentumTimer->DisablePractice(pPlayer);
     }
 
-    static void MarkStart() { g_pMomentumTimer->CreateStartMark(); }
+    // TRIKZ NETWORK TIMERS: Iterate over all players
+    static void MarkStart() { g_pMomentumTimer->CreateStartMark(ToCMOMPlayer(UTIL_GetCommandClient())); }
 
-    static void ClearStart() { g_pMomentumTimer->ClearStartMark(); }
+    // TRIKZ NETWORK TIMERS: Iterate over all players
+    static void ClearStart() {
+		CMomentumPlayer *pPlayer;
+
+		for (int i = 0; i < gpGlobals->maxClients; i++) {
+			pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+			g_pMomentumTimer->ClearStartMark(pPlayer);
+		}
+	}
 
     static void TeleToStage(const CCommand &args)
     {
-        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
+        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetCommandClient());
         const Vector *pVec = nullptr;
         const QAngle *pAng = nullptr;
         if (pPlayer && args.ArgC() >= 2)
@@ -495,7 +539,8 @@ class CTimerCommands
             if (desiredIndex == 1)
             {
                 // Index 1 is the start. If the timer has a mark, we use it
-                Checkpoint *startMark = g_pMomentumTimer->GetStartMark();
+                // TRIKZ NETWORK TIMERS: UTIL_GetCommandClient()
+                Checkpoint *startMark = g_pMomentumTimer->GetStartMark(pPlayer);
                 if (startMark)
                 {
                     pVec = &startMark->pos;
@@ -536,7 +581,8 @@ class CTimerCommands
                 // Untouch our triggers
                 pPlayer->PhysicsCheckForEntityUntouch();
                 // Stop *after* the teleport
-                g_pMomentumTimer->Stop();
+                // TRIKZ NETWORK TIMERS: UTIL_GetCommandClient()
+                g_pMomentumTimer->Stop(pPlayer, false);
             } 
             else
             {
@@ -545,6 +591,23 @@ class CTimerCommands
         }
     }
 };
+
+CTimerData* CMomentumTimer::GetTimerDataForPlayer(CMomentumPlayer *pPlayer) {
+	uint64 pSteamID = pPlayer->GetSteamIDAsUInt64();
+	char pSteamIDString[16];
+	Q_snprintf(pSteamIDString, 16, "%i", pSteamID);
+
+	CTimerData* pData;
+
+	if (m_pPlayersTimerData.find(pSteamID) != m_pPlayersTimerData.end()) {
+		pData = m_pPlayersTimerData[pSteamID];
+	}
+	else {
+		pData = new CTimerData();
+		m_pPlayersTimerData.insert(std::pair<uint64, CTimerData*>(pSteamID, pData));
+	}
+	return pData;
+}
 
 static ConCommand mom_practice("mom_practice", CTimerCommands::PracticeMove,
                                "Toggle. Stops timer and allows player to fly around in noclip.\n"

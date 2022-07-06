@@ -42,11 +42,18 @@ public:
     void LevelShutdownPostEntity() OVERRIDE
     {
         //Stop a recording if there is one while the level shuts down
-        if (m_pReplayManager->Recording())
-            StopRecording(true, false);
+		for (int i = 0; i < gpGlobals->maxClients; i++) {
+			CMomentumPlayer* pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
 
-        if (m_pReplayManager->GetPlaybackReplay())
-            m_pReplayManager->UnloadPlayback(true);
+			if (!pPlayer)
+				continue;
+
+			if (m_pReplayManager->Recording())
+				StopRecording(pPlayer, true, false);
+
+			if (m_pReplayManager->GetPlaybackReplay())
+				m_pReplayManager->UnloadPlayback(true);
+		}
     }
 
     //Sets the start timer tick, this is used for trimming later on
@@ -56,14 +63,14 @@ public:
     }
 
     void BeginRecording(CBasePlayer *pPlayer);
-    void StopRecording(bool throwaway, bool delay);
+    void StopRecording(CMomentumPlayer* pPlayer, bool throwaway, bool delay);
     void TrimReplay(); //Trims a replay's start down to only include a defined amount of time in the start trigger
 
     inline CMomReplayManager* GetReplayManager() const { return m_pReplayManager; }
 
 private:
     void UpdateRecordingParams(); // called every game frame after entities think and update
-    void SetReplayInfo();
+    void SetReplayInfo(CMomentumPlayer *pPlayer);
     void SetRunStats();
 
     bool m_bShouldStopRec;

@@ -26,11 +26,10 @@ void CMomentumReplaySystem::BeginRecording(CBasePlayer *pPlayer)
     }
 }
 
-void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
+// TRIKZ NETWORK TIMERS: Must be given a player
+void CMomentumReplaySystem::StopRecording(CMomentumPlayer *pPlayer, bool throwaway, bool delay)
 {
     IGameEvent *replaySavedEvent = gameeventmanager->CreateEvent("replay_save");
-
-    CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
 
     if (throwaway && replaySavedEvent)
     {
@@ -60,8 +59,8 @@ void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
     m_bShouldStopRec = false;
 
     // Don't ask why, but these need to be formatted in their own strings.
-    Q_snprintf(runDate, MAX_PATH, "%li", g_pMomentumTimer->GetLastRunDate());
-    Q_snprintf(runTime, MAX_PATH, "%.3f", g_pMomentumTimer->GetLastRunTime());
+    Q_snprintf(runDate, MAX_PATH, "%li", g_pMomentumTimer->GetLastRunDate(pPlayer));
+    Q_snprintf(runTime, MAX_PATH, "%.3f", g_pMomentumTimer->GetLastRunTime(pPlayer));
     // It's weird.
 
     Q_snprintf(newRecordingName, MAX_PATH, "%s-%s-%s%s", gpGlobals->mapname.ToCStr(), runDate, runTime, EXT_RECORDING_FILE);
@@ -76,7 +75,7 @@ void CMomentumReplaySystem::StopRecording(bool throwaway, bool delay)
     TrimReplay();
 
     // Store the replay in a file and stop recording. Let's Trim before doing this, for our start recorded tick.
-    SetReplayInfo();
+    SetReplayInfo(pPlayer);
     SetRunStats();
 
     int postTrimTickCount = m_pReplayManager->GetRecordingReplay()->GetFrameCount();
@@ -132,7 +131,7 @@ void CMomentumReplaySystem::UpdateRecordingParams()
 {
     for (int i = 1; i <= gpGlobals->maxClients; i++)
     {
-        CBasePlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+        CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
         if (m_player == pPlayer)
         {
             // We only record frames that the player isn't pausing on
@@ -144,13 +143,13 @@ void CMomentumReplaySystem::UpdateRecordingParams()
             }
 
             if (m_bShouldStopRec && m_fRecEndTime < gpGlobals->curtime)
-                StopRecording(false, false);
+                StopRecording(pPlayer, false, false);
         }
     }
 }
 
-
-void CMomentumReplaySystem::SetReplayInfo()
+// TRIKZ NETWORK TIMERS: Must be given a player
+void CMomentumReplaySystem::SetReplayInfo(CMomentumPlayer *pPlayer)
 {
     if (!m_pReplayManager->Recording())
         return;
@@ -162,9 +161,9 @@ void CMomentumReplaySystem::SetReplayInfo()
     ISteamUser *pUser = steamapicontext->SteamUser();
     replay->SetPlayerSteamID(pUser ? pUser->GetSteamID().ConvertToUint64() : 0);
     replay->SetTickInterval(gpGlobals->interval_per_tick);
-    replay->SetRunTime(g_pMomentumTimer->GetLastRunTime());
+    replay->SetRunTime(g_pMomentumTimer->GetLastRunTime(pPlayer));
     replay->SetRunFlags(m_player->m_RunData.m_iRunFlags);
-    replay->SetRunDate(g_pMomentumTimer->GetLastRunDate());
+    replay->SetRunDate(g_pMomentumTimer->GetLastRunDate(pPlayer));
     replay->SetStartTick(m_iStartTimerTick - m_iStartRecordingTick);
 }
 

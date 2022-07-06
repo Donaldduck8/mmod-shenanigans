@@ -19,7 +19,7 @@ CON_COMMAND(mom_strafesync_reset, "Reset the strafe sync. (works only when timer
 {
     CMomentumPlayer *pPlayer = dynamic_cast<CMomentumPlayer *>(UTIL_GetCommandClient());
 
-    if (pPlayer && !g_pMomentumTimer->IsRunning())
+    if (pPlayer && !g_pMomentumTimer->IsRunning(pPlayer))
     {
         pPlayer->GetStrafeTicks() = pPlayer->GetPerfectSyncTicks() = pPlayer->GetAccelTicks() = 0;
         pPlayer->m_RunData.m_flStrafeSync = pPlayer->m_RunData.m_flStrafeSync2 = 0.0f;
@@ -35,6 +35,7 @@ SendPropExclude("DT_BaseAnimating", "m_nMuzzleFlashParity"), SendPropInt(SENDINF
     SendPropInt(SENDINFO(m_afButtonDisabled)),
     SendPropDataTable(SENDINFO_DT(m_RunData), &REFERENCE_SEND_TABLE(DT_MOM_RunEntData)),
     SendPropDataTable(SENDINFO_DT(m_RunStats), &REFERENCE_SEND_TABLE(DT_MOM_RunStats)),
+    SendPropDataTable(SENDINFO_DT(m_RunStats), &REFERENCE_SEND_TABLE(DT_MOM_RunStats))
 
 END_SEND_TABLE();
 
@@ -634,7 +635,7 @@ void CMomentumPlayer::CheckForBhop()
         {
             m_RunData.m_flLastJumpVel = GetLocalVelocity().Length2D();
             m_iSuccessiveBhops++;
-            if (g_pMomentumTimer->IsRunning())
+            if (g_pMomentumTimer->IsRunning(this))
             {
                 int currentZone = m_RunData.m_iCurrentZone;
                 m_RunStats.SetZoneJumps(0, m_RunStats.GetZoneJumps(0) + 1);
@@ -670,7 +671,7 @@ void CMomentumPlayer::UpdateRunStats()
 
 void CMomentumPlayer::UpdateRunSync()
 {
-    if (g_pMomentumTimer->IsRunning())
+    if (g_pMomentumTimer->IsRunning(this))
     {
         float SyncVelocity = GetLocalVelocity().Length2DSqr(); // we always want HVEL for checking velocity sync
         if (!(GetFlags() & (FL_ONGROUND | FL_INWATER)) && GetMoveType() != MOVETYPE_LADDER)
@@ -707,7 +708,7 @@ void CMomentumPlayer::UpdateRunSync()
 
 void CMomentumPlayer::UpdateJumpStrafes()
 {
-    if (!g_pMomentumTimer->IsRunning())
+    if (!g_pMomentumTimer->IsRunning(this))
         return;
 
     int currentZone = m_RunData.m_iCurrentZone;
@@ -737,13 +738,13 @@ void CMomentumPlayer::UpdateJumpStrafes()
         m_RunStats.SetZoneStrafes(currentZone, m_RunStats.GetZoneStrafes(currentZone) + 1);
     }
 
-    m_bPrevTimerRunning = g_pMomentumTimer->IsRunning();
+    m_bPrevTimerRunning = g_pMomentumTimer->IsRunning(this);
     m_nPrevButtons = m_nButtons;
 }
 
 void CMomentumPlayer::UpdateMaxVelocity()
 {
-    if (!g_pMomentumTimer->IsRunning())
+    if (!g_pMomentumTimer->IsRunning(this))
         return;
 
     int currentZone = m_RunData.m_iCurrentZone;
@@ -785,7 +786,7 @@ void CMomentumPlayer::ResetRunStats()
 }
 void CMomentumPlayer::CalculateAverageStats()
 {
-    if (g_pMomentumTimer->IsRunning())
+    if (g_pMomentumTimer->IsRunning(this))
     {
         int currentZone = m_RunData.m_iCurrentZone; // g_Timer->GetCurrentZoneNumber();
 
@@ -846,7 +847,7 @@ void CMomentumPlayer::LimitSpeedInStartZone()
         // no nullptr, correct gamemode, is limiting leave speed and 
         //    enough ticks on air have passed
         if (startTrigger && (gm.GetInt() == MOMGM_BHOP || gm.GetInt() == MOMGM_SCROLL) && startTrigger->HasSpawnFlags(SF_LIMIT_LEAVE_SPEED) &&
-            (!g_pMomentumTimer->IsRunning() && m_nTicksInAir > MAX_AIRTIME_TICKS))
+            (!g_pMomentumTimer->IsRunning(this) && m_nTicksInAir > MAX_AIRTIME_TICKS))
         {
             Vector velocity = GetLocalVelocity();
             float PunishVelSquared = startTrigger->GetMaxLeaveSpeed() * startTrigger->GetMaxLeaveSpeed();

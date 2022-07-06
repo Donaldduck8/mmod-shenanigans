@@ -62,8 +62,10 @@ void CMomReplayV1::Start(bool firstperson)
 #ifdef GAME_DLL
     if (m_pEntity)
     {
+        // TRIKZ NETWORK TIMERS: ToCMOMPlayer(m_pEntity).m_pMomentumTimer->Stop(false)
         if (firstperson)
-            g_pMomentumTimer->Stop(false); // stop the timer just in case we started a replay while it was running...
+			g_pMomentumTimer->Stop(ToCMOMPlayer(m_pEntity), false);
+            //g_pMomentumTimer->Stop(false); // stop the timer just in case we started a replay while it was running...
 
         m_pEntity->StartRun(firstperson);
         g_ReplaySystem->GetReplayManager()->SetPlayingBack(true);

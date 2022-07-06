@@ -69,27 +69,35 @@ void CMOMCheckpointSystem::LoadMapCheckpoints(CMomentumPlayer* pPlayer) const
     }
 }
 
+// TRIKZ NETWORK TIMERS: Iterate over all players
 inline void CheckTimer()
 {
-    if (g_pMomentumTimer->IsRunning())
-    {
-        // MOM_TODO: consider
-        // 1. having a local timer running, as people may want to time their routes they're using CP menu for
-        // 2. gamemodes (KZ) where this is allowed
+	for (int i = 0; i < gpGlobals->maxClients; i++) {
+		CMomentumPlayer* pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
 
-        ConVarRef gm("mom_gamemode");
-        switch (gm.GetInt())
-        {
-        case MOMGM_SURF:
-        case MOMGM_BHOP:
-        case MOMGM_SCROLL:
-            g_pMomentumTimer->Stop(false);
+		if (!pPlayer)
+			continue;
 
-            //case MOMGM_KZ:
-        default:
-            break;
-        }
-    }
+		if (g_pMomentumTimer->IsRunning(pPlayer))
+		{
+			// MOM_TODO: consider
+			// 1. having a local timer running, as people may want to time their routes they're using CP menu for
+			// 2. gamemodes (KZ) where this is allowed
+
+			ConVarRef gm("mom_gamemode");
+			switch (gm.GetInt())
+			{
+			case MOMGM_SURF:
+			case MOMGM_BHOP:
+			case MOMGM_SCROLL:
+				g_pMomentumTimer->Stop(pPlayer, false);
+
+				//case MOMGM_KZ:
+			default:
+				break;
+			}
+		}
+	}
 
     CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_GetLocalPlayer());
     if (pPlayer)

@@ -80,6 +80,7 @@ void CMapzone::SpawnZone()
         }
         
         m_trigger->SetName(MAKE_STRING("Start Trigger"));
+        // TRIKZ NETWORK TIMERS: Iterate over all players
         g_pMomentumTimer->SetStartTrigger((CTriggerTimerStart *) m_trigger);
         break;
     case MOMZONETYPE_CP:
@@ -146,6 +147,7 @@ void CMapzone::SpawnZone()
         }
 
         m_trigger->SetName(MAKE_STRING("Bonus Start Trigger"));
+        // TRIKZ NETWORK TIMERS: Iterate over all players
         g_pMomentumTimer->SetStartTrigger((CTriggerTimerBonusStart *)m_trigger);
         break;
     case MOMZONETYPE_BONUSSTOP:

@@ -245,6 +245,8 @@ class CTriggerMultihop : public CTriggerTeleportEnt
 
     CTriggerMultihop();
 
+    
+
   public:
     void StartTouch(CBaseEntity *) OVERRIDE;
     void EndTouch(CBaseEntity *) OVERRIDE;
