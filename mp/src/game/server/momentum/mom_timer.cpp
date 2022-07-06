@@ -333,7 +333,13 @@ bool CTimeTriggerTraceEnum::EnumEntity(IHandleEntity *pHandleEntity)
         if (!g_pMomentumUtil->FloatEquals(dist, 0.0f))
         {
             // TRIKZ NETWORK TIMERS: Dunno what this does lol
-            //g_pMomentumTimer->m_flDistFixTraceCorners[m_iCornerNumber] = dist;
+			for (int i = 0; i < gpGlobals->maxClients; i++) {
+				CMomentumPlayer *pPlayer = ToCMOMPlayer(UTIL_PlayerByIndex(i));
+
+				if (pPlayer)
+					g_pMomentumTimer->GetTimerDataForPlayer(pPlayer)->m_flDistFixTraceCorners[m_iCornerNumber] = dist;
+			}
+            
         }
 
         return false; // Stop the enumeration, we hit our target
