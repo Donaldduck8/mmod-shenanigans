@@ -333,7 +333,9 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 
 	float maximumColorValue = max(max(flashlightRed, flashlightGreen), flashlightBlue);
 
-	flashlightRed, flashlightGreen, flashlightBlue /= maximumColorValue;
+	flashlightRed /= maximumColorValue;
+    flashlightGreen /= maximumColorValue;
+    flashlightBlue /= maximumColorValue;
 
 	state.m_fConstantAtten = r_flashlightconstant.GetFloat();
     state.m_Color[0] = flashlightRed;
