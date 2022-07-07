@@ -339,6 +339,7 @@ bool CTimeTriggerTraceEnum::EnumEntity(IHandleEntity *pHandleEntity)
 				if (pPlayer)
 					g_pMomentumTimer->GetTimerDataForPlayer(pPlayer)->m_flDistFixTraceCorners[m_iCornerNumber] = dist;
 			}
+
             
         }
 
