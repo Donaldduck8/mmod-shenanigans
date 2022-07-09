@@ -10,6 +10,9 @@
 
 #define NO_LOOK -190.0f
 
+IMPLEMENT_SERVERCLASS_ST(CMapzoneData, DT_Mapzones)
+SendPropString(SENDINFO(m_zones_str)) END_SEND_TABLE();
+
 CMapzone::~CMapzone()
 {
     if (m_pos)
@@ -526,7 +529,8 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
             }
 
             // Add element
-            m_zones.AddToTail(new CMapzone(zoneType, pos, rot, scaleMins, scaleMaxs, index, shouldStop, shouldTilt,
+            m_zones.AddToTail(new CMapzone(
+                zoneType, pos, rot, scaleMins, scaleMaxs, index, shouldStop, shouldTilt,
                 holdTime, limitingspeed, bhopleavespeed, start_yaw, MAKE_STRING(linkedtrigger), checkonlyxy, bonusstage));
         }
 
@@ -534,6 +538,7 @@ bool CMapzoneData::LoadFromFile(const char *szMapName)
         toReturn = true;
     }
     zoneKV->deleteThis();
+    
     return toReturn;
 }
 

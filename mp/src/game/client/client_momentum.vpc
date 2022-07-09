@@ -294,7 +294,18 @@ $Project "Client (Momentum)"
             $File   "momentum\clientmode_mom_normal.cpp"
             $File   "momentum\mom_event_listener.h"
             $File   "momentum\mom_event_listener.cpp"
-            
+			$File	"momentum\c_mapzones.h"
+			$File   "momentum\c_mapzones.cpp"
+			{
+                $Configuration
+                {
+                    $Compiler
+                    {
+                        $Create/UsePrecompiledHeader    "Not Using Precompiled Headers"
+                    }
+                }
+            }
+			
             // RTT Shadows
             $File "momentum\worldlight.h"
             $File "momentum\worldlight.cpp"

@@ -10,6 +10,7 @@
 #include "movevars_shared.h"
 #include "util/mom_util.h"
 #include "momentum/ui/IMessageboxPanel.h"
+#include "c_mapzones.h"
 
 #include "tier0/memdbgon.h"
 
@@ -27,6 +28,11 @@ void CMOMClientEvents::LevelInitPostEntity()
         engine->ClientCmd(command);
     }
     isReplay.SetValue(0);
+}
+
+void CMOMClientEvents::Update(float frametime)
+{ 
+    g_Mapzones.DrawMapZones();
 }
 
 void CMOMClientEvents::PostInit()

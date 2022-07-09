@@ -415,7 +415,7 @@ void CDialogMapInfo::Get10MapTimesCallback(HTTPRequestCompleted_t *pCallback, bo
     char *pDataPtr = reinterpret_cast<char *>(pData);
     char *endPtr;
     int status = jsonParse(pDataPtr, &endPtr, &val, alloc);
-
+    
     if (status == JSON_OK)
     {
         DevLog("JSON Parsed!\n");

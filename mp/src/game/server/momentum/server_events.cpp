@@ -111,7 +111,7 @@ void CMOMServerEvents::FrameUpdatePreEntityThink()
         // This will cause spam on server console if run on a dedicated server
         // TRIKZ TODO: Fix the console spam; for now this will be placed inside this if-check
         // so that mapzone drawing can work inside single-player servers.
-        g_Mapzones.DrawMapZones();
+        //g_Mapzones.DrawMapZones();
 
         // TRIKZ TODO: Find a better way to do this.. This has been a miserable experience...
         ConVarRef ambientVol("volume_ambient");
