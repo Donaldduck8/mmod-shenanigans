@@ -571,10 +571,6 @@ public:
 	virtual void DisconnectInternal() = 0;
 
 	virtual int GetInstancesRunningCount( ) = 0;
-
-	virtual void SolidMoved(class IClientEntity * pSolidEnt, class ICollideable * pSolidCollide,
-                            const Vector *pPrevAbsOrigin, bool accurateBboxTriggerChecks) = 0;
-    virtual void TriggerMoved(class IClientEntity * pTriggerEnt, bool accurateBboxTriggerChecks) = 0;
 };
 
 

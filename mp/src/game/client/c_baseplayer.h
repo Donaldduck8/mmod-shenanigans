@@ -240,8 +240,7 @@ public:
 	void						ClearPlayerSimulationList( void );
 #endif
 
-	virtual void PhysicsSimulate(void);
-    virtual void PhysicsTouchTriggers(const Vector *pPrevAbsOrigin = NULL);
+	virtual void				PhysicsSimulate( void );
 	virtual unsigned int	PhysicsSolidMaskForEntity( void ) const { return MASK_PLAYERSOLID; }
 
 	// Prediction stuff

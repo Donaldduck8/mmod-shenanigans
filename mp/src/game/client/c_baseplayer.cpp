@@ -2339,18 +2339,6 @@ void C_BasePlayer::PhysicsSimulate( void )
 #endif
 }
 
-void C_BasePlayer::PhysicsTouchTriggers(const Vector *pPrevAbsOrigin)
-{
-    C_BaseCombatCharacter::PhysicsTouchTriggers(pPrevAbsOrigin);
-    /*
-    if (this == GetLocalPlayer())
-    {
-        extern void TouchTriggerSoundOperator(C_BaseEntity * pEntity);
-        TouchTriggerSoundOperator(this);
-    }
-	*/
-}
-
 const QAngle& C_BasePlayer::GetPunchAngle()
 {
 	return m_Local.m_vecPunchAngle.Get();
