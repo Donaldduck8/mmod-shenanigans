@@ -2433,17 +2433,8 @@ void CTriggerTeleport::Touch( CBaseEntity *pOther )
         pVelocityNew *= pOther->GetLocalVelocity().Length2D();
 	}
 
-	//(CBasePlayer*)pOther->
-
 	pExitPosition += vecLandmarkOffset;
-
-	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-    //pPlayer->ForceButtons(IN_WALK);
-	//pOther->Teleport(&pExitPosition, &pAngles, &pVelocityNew);
-    Msg("%f\n", pPlayer->GetCurrentUserCommand()->sidemove);
     pOther->Teleport(&pExitPosition, &pAngles, &pVelocityNew);
-    pPlayer->SetAbsAngles(pAngles);
-    pPlayer->SetAbsVelocity(pVelocityNew);
 }
 
 

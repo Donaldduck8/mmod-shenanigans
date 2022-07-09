@@ -4418,100 +4418,70 @@ struct TeleportListEntry_t
 
 static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &entry, const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity )
 {
-    CBaseEntity *pTeleport = entry.pEntity;
-    Vector prevOrigin = entry.prevAbsOrigin;
-    QAngle prevAngles = entry.prevAbsAngles;
+	CBaseEntity *pTeleport = entry.pEntity;
+	Vector prevOrigin = entry.prevAbsOrigin;
+	QAngle prevAngles = entry.prevAbsAngles;
 
-    int nSolidFlags = pTeleport->GetSolidFlags();
-    IPhysicsObject *pPhys = pTeleport->VPhysicsGetObject();
-    bool bEnablePhysCollision = false;
-    // by default we use a slow method that keeps contacts accurate.
-    // when desired it is possible to use a quicker method that trades off accuracy to save CPU
-    if (pPhys)
-    {
-        bEnablePhysCollision = pPhys->IsCollisionEnabled();
-        if (bEnablePhysCollision)
-        {
-            pPhys->EnableCollisions(false);
-        }
-        pTeleport->AddSolidFlags(FSOLID_NOT_SOLID);
-    }
+	int nSolidFlags = pTeleport->GetSolidFlags();
+	pTeleport->AddSolidFlags( FSOLID_NOT_SOLID );
 
-    // I'm teleporting myself
-    if (pSourceEntity == pTeleport)
-    {
-        if (newAngles && newVelocity && newPosition)
-        {
-            Msg("Angles: %f %f %f\n", newAngles->x, newAngles->y, newAngles->z);
-            Msg("Vel: %f %f %f\n", newVelocity->x, newVelocity->y, newAngles->z);
-            Msg("Pos: %f %f %f\n", newPosition->x, newPosition->y, newPosition->z);
-        }
+	// I'm teleporting myself
+	if ( pSourceEntity == pTeleport )
+	{
+		if ( newAngles )
+		{
+			pTeleport->SetLocalAngles( *newAngles );
+			if ( pTeleport->IsPlayer() )
+			{
+				CBasePlayer *pPlayer = (CBasePlayer *)pTeleport;
+				pPlayer->SnapEyeAngles( *newAngles );
+			}
+		}
 
-		if (newPosition)
-        {
-            pTeleport->AddEffects(EF_NOINTERP);
-            UTIL_SetOrigin(pTeleport, *newPosition);
-        }
+		if ( newVelocity )
+		{
+			pTeleport->SetAbsVelocity( *newVelocity );
+			pTeleport->SetBaseVelocity( vec3_origin );
+		}
 
-        if (newAngles)
-        {
-            pTeleport->SetLocalAngles(*newAngles);
-            if (pTeleport->IsPlayer())
-            {
-                CBasePlayer *pPlayer = (CBasePlayer *)pTeleport;
-                pPlayer->SnapEyeAngles(*newAngles);
-            }
-        }
+		if ( newPosition )
+		{
+			pTeleport->IncrementInterpolationFrame();
+			UTIL_SetOrigin( pTeleport, *newPosition );
+		}
+	}
+	else
+	{
+		// My parent is teleporting, just update my position & physics
+		pTeleport->CalcAbsolutePosition();
+	}
+	IPhysicsObject *pPhys = pTeleport->VPhysicsGetObject();
+	bool rotatePhysics = false;
 
-	if (newVelocity)
-        {
-            if (!pPhys || pTeleport->GetMoveType() != MOVETYPE_VPHYSICS)
-            {
-                pTeleport->SetAbsVelocity(*newVelocity);
-            }
-            pTeleport->SetBaseVelocity(vec3_origin);
-        }
-    }
-    else
-    {
-        // My parent is teleporting, just update my position & physics
-        pTeleport->CalcAbsolutePosition();
-    }
+	// handle physics objects / shadows
+	if ( pPhys )
+	{
+		if ( newVelocity )
+		{
+			pPhys->SetVelocity( newVelocity, NULL );
+		}
+		const QAngle *rotAngles = &pTeleport->GetAbsAngles();
+		// don't rotate physics on players or bbox entities
+		if (pTeleport->IsPlayer() || pTeleport->GetSolid() == SOLID_BBOX )
+		{
+			rotAngles = &vec3_angle;
+		}
+		else
+		{
+			rotatePhysics = true;
+		}
 
-    // handle physics objects / shadows
-    if (pPhys)
-    {
-        if (newVelocity)
-        {
-            pPhys->SetVelocity(newVelocity, NULL);
-        }
-        const QAngle *rotAngles = &pTeleport->GetAbsAngles();
-        // don't rotate physics on players or bbox entities
-        if (pTeleport->IsPlayer() || pTeleport->GetSolid() == SOLID_BBOX)
-        {
-            if (newAngles)
-            {
-                rotAngles = newAngles;
-            }
-            else
-            {
-                rotAngles = &vec3_angle;
-            }
-        }
+		pPhys->SetPosition( pTeleport->GetAbsOrigin(), *rotAngles, true );
+	}
 
-        pPhys->SetPosition(pTeleport->GetAbsOrigin(), *rotAngles, true);
-    }
+	g_pNotify->ReportTeleportEvent( pTeleport, prevOrigin, prevAngles, rotatePhysics );
 
-    g_pNotify->ReportTeleportEvent(pTeleport, prevOrigin, prevAngles, true);
-
-    if (pPhys)
-    {
-        pTeleport->SetSolidFlags(nSolidFlags);
-        if (bEnablePhysCollision)
-        {
-            pPhys->EnableCollisions(true);
-        }
-    }
+	pTeleport->SetSolidFlags( nSolidFlags );
 }
 
 
@@ -4542,30 +4512,46 @@ static void BuildTeleportList_r( CBaseEntity *pTeleport, CUtlVector<TeleportList
 
 
 static CUtlVector<CBaseEntity *> g_TeleportStack;
-void CBaseEntity::Teleport(const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity)
+void CBaseEntity::Teleport( const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity )
 {
-    if (g_TeleportStack.Find(this) >= 0)
-        return;
-    int index = g_TeleportStack.AddToTail(this);
+	if ( g_TeleportStack.Find( this ) >= 0 )
+		return;
+	int index = g_TeleportStack.AddToTail( this );
 
-    CUtlVector<TeleportListEntry_t> teleportList;
-    BuildTeleportList_r(this, teleportList);
+	CUtlVector<TeleportListEntry_t> teleportList;
+	BuildTeleportList_r( this, teleportList );
 
-    int i;
-    for (i = 0; i < teleportList.Count(); i++)
-    {
-        TeleportEntity(this, teleportList[i], newPosition, newAngles, newVelocity);
-    }
+	int i;
+	for ( i = 0; i < teleportList.Count(); i++)
+	{
+		TeleportEntity( this, teleportList[i], newPosition, newAngles, newVelocity );
+	}
 
-    Assert(g_TeleportStack[index] == this);
-    g_TeleportStack.FastRemove(index);
+	for (i = 0; i < teleportList.Count(); i++)
+	{
+		teleportList[i].pEntity->CollisionRulesChanged();
+	}
 
-    // FIXME: add an initializer function to StepSimulationData
-    StepSimulationData *step = (StepSimulationData *)GetDataObject(STEPSIMULATION);
-    if (step)
-    {
-        Q_memset(step, 0, sizeof(*step));
-    }
+	if ( IsPlayer() )
+	{
+		// Tell the client being teleported
+		IGameEvent *event = gameeventmanager->CreateEvent( "base_player_teleported" );
+		if ( event )
+		{
+			event->SetInt( "entindex", entindex() );
+			gameeventmanager->FireEventClientSide( event );
+		}
+	}
+
+	Assert( g_TeleportStack[index] == this );
+	g_TeleportStack.FastRemove( index );
+
+	// FIXME: add an initializer function to StepSimulationData
+	StepSimulationData *step = ( StepSimulationData * )GetDataObject( STEPSIMULATION );
+	if (step)
+	{
+		Q_memset( step, 0, sizeof( *step ) );
+	}
 }
 
 // Stuff implemented for weapon prediction code

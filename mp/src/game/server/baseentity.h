@@ -2041,7 +2041,6 @@ inline void CBaseEntity::RemoveEFlags( int nEFlagMask )
 inline bool CBaseEntity::IsEFlagSet( int nEFlagMask ) const
 {
 	return (m_iEFlags & nEFlagMask) != 0;
-	return (m_iEFlags & nEFlagMask) != 0;
 }
 
 inline void	CBaseEntity::SetNavIgnore( float duration )
