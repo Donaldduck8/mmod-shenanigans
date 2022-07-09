@@ -18,8 +18,6 @@ public:
 
     void LevelInitPostEntity() OVERRIDE;
 
-    void Update(float frametime) OVERRIDE;
-
     //From the Valve SDK wiki
     static void MountAdditionalContent();
 

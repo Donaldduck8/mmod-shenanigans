@@ -59,12 +59,9 @@ private:
     int m_bonusStage;
 };
 
-class CMapzoneData : public CBaseEntity
+class CMapzoneData
 {
-    DECLARE_CLASS(CMapzoneData, CBaseEntity);
-    DECLARE_SERVERCLASS();
-
-  public:
+public:
     void DrawMapZones();
     CMapzoneData();
     CMapzoneData(const char *szMapName);
@@ -76,6 +73,7 @@ class CMapzoneData : public CBaseEntity
     bool MapZoneSpawned(CMapzone*);
     bool LoadFromFile(const char*);
 
+private:
     CUtlVector<CMapzone*> m_zones;
 };
 
