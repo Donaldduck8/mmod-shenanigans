@@ -1130,49 +1130,48 @@ void CGameMovement::ReduceTimers( void )
 // Purpose: 
 // Input  : *pMove - 
 //-----------------------------------------------------------------------------
-void CGameMovement::ProcessMovement( CBasePlayer *pPlayer, CMoveData *pMove )
+void CGameMovement::ProcessMovement(CBasePlayer *pPlayer, CMoveData *pMove)
 {
-	Assert( pMove && pPlayer );
+    Assert(pMove && pPlayer);
 
-	float flStoreFrametime = gpGlobals->frametime;
+    float flStoreFrametime = gpGlobals->frametime;
 
-	//!!HACK HACK: Adrian - slow down all player movement by this factor.
-	//!!Blame Yahn for this one.
-	gpGlobals->frametime *= pPlayer->GetLaggedMovementValue();
+    //!!HACK HACK: Adrian - slow down all player movement by this factor.
+    //!!Blame Yahn for this one.
+    gpGlobals->frametime *= pPlayer->GetLaggedMovementValue();
 
-	ResetGetPointContentsCache();
+    ResetGetPointContentsCache();
 
-	// Cropping movement speed scales mv->m_fForwardSpeed etc. globally
-	// Once we crop, we don't want to recursively crop again, so we set the crop
-	//  flag globally here once per usercmd cycle.
-	m_iSpeedCropped = SPEED_CROPPED_RESET;
-	
-	// StartTrackPredictionErrors should have set this
-	Assert( player == pPlayer );
-	player = pPlayer;
+    // Cropping movement speed scales mv->m_fForwardSpeed etc. globally
+    // Once we crop, we don't want to recursively crop again, so we set the crop
+    //  flag globally here once per usercmd cycle.
+    m_iSpeedCropped = SPEED_CROPPED_RESET;
 
-	mv = pMove;
-	mv->m_flMaxSpeed = pPlayer->GetPlayerMaxSpeed();
+    // StartTrackPredictionErrors should have set this
+    Assert(player == pPlayer);
+    player = pPlayer;
 
-	// CheckV( player->CurrentCommandNumber(), "StartPos", mv->GetAbsOrigin() );
+    mv = pMove;
+    mv->m_flMaxSpeed = pPlayer->GetPlayerMaxSpeed();
 
-	DiffPrint( "start %f %f %f", mv->GetAbsOrigin().x, mv->GetAbsOrigin().y, mv->GetAbsOrigin().z );
+    // CheckV( player->CurrentCommandNumber(), "StartPos", mv->GetAbsOrigin() );
 
-	// Run the command.
-	PlayerMove();
+    DiffPrint("start %f %f %f", mv->GetAbsOrigin().x, mv->GetAbsOrigin().y, mv->GetAbsOrigin().z);
 
-	FinishMove();
+    // Run the command.
+    PlayerMove();
 
-	DiffPrint( "end %f %f %f", mv->GetAbsOrigin().x, mv->GetAbsOrigin().y, mv->GetAbsOrigin().z );
+    FinishMove();
 
-	// CheckV( player->CurrentCommandNumber(), "EndPos", mv->GetAbsOrigin() );
+    DiffPrint("end %f %f %f", mv->GetAbsOrigin().x, mv->GetAbsOrigin().y, mv->GetAbsOrigin().z);
 
-	//This is probably not needed, but just in case.
-	gpGlobals->frametime = flStoreFrametime;
+    // CheckV( player->CurrentCommandNumber(), "EndPos", mv->GetAbsOrigin() );
 
-// 	player = NULL;
+    // This is probably not needed, but just in case.
+    gpGlobals->frametime = flStoreFrametime;
+
+    // 	player = NULL;
 }
-
 void CGameMovement::StartTrackPredictionErrors( CBasePlayer *pPlayer )
 {
 	player = pPlayer;

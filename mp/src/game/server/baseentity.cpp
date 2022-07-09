@@ -4423,37 +4423,12 @@ static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &ent
     QAngle prevAngles = entry.prevAbsAngles;
 
     int nSolidFlags = pTeleport->GetSolidFlags();
-    IPhysicsObject *pPhys = pTeleport->VPhysicsGetObject();
-    bool bEnablePhysCollision = false;
-    // by default we use a slow method that keeps contacts accurate.
-    // when desired it is possible to use a quicker method that trades off accuracy to save CPU
-    if (pPhys)
-    {
-        bEnablePhysCollision = pPhys->IsCollisionEnabled();
-        if (bEnablePhysCollision)
-        {
-            pPhys->EnableCollisions(false);
-        }
-        pTeleport->AddSolidFlags(FSOLID_NOT_SOLID);
-    }
+    pTeleport->AddSolidFlags(FSOLID_NOT_SOLID);
 
     // I'm teleporting myself
     if (pSourceEntity == pTeleport)
     {
-        if (newAngles && newVelocity && newPosition)
-        {
-            Msg("Angles: %f %f %f\n", newAngles->x, newAngles->y, newAngles->z);
-            Msg("Vel: %f %f %f\n", newVelocity->x, newVelocity->y, newAngles->z);
-            Msg("Pos: %f %f %f\n", newPosition->x, newPosition->y, newPosition->z);
-        }
-
-		if (newPosition)
-        {
-            pTeleport->AddEffects(EF_NOINTERP);
-            UTIL_SetOrigin(pTeleport, *newPosition);
-        }
-
-        if (newAngles)
+		if (newAngles)
         {
             pTeleport->SetLocalAngles(*newAngles);
             if (pTeleport->IsPlayer())
@@ -4463,20 +4438,32 @@ static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &ent
             }
         }
 
-	if (newVelocity)
+        if (newVelocity)
         {
-            if (!pPhys || pTeleport->GetMoveType() != MOVETYPE_VPHYSICS)
-            {
-                pTeleport->SetAbsVelocity(*newVelocity);
-            }
+            pTeleport->SetAbsVelocity(*newVelocity);
             pTeleport->SetBaseVelocity(vec3_origin);
         }
+
+        if (newPosition)
+        {
+            pTeleport->IncrementInterpolationFrame();
+            UTIL_SetOrigin(pTeleport, *newPosition);
+        }
+
+		Msg("Angles: %f %f %f\n", pTeleport->GetLocalAngles().x, pTeleport->GetLocalAngles().y,
+            pTeleport->GetLocalAngles().z);
+        Msg("Velocity: %f %f %f\n", pTeleport->GetAbsVelocity().x, pTeleport->GetAbsVelocity().y,
+            pTeleport->GetAbsVelocity().z);
+        Msg("Position: %f %f %f\n", pTeleport->GetAbsOrigin().x, pTeleport->GetAbsOrigin().y,
+            pTeleport->GetAbsOrigin().z);
     }
     else
     {
         // My parent is teleporting, just update my position & physics
         pTeleport->CalcAbsolutePosition();
     }
+    IPhysicsObject *pPhys = pTeleport->VPhysicsGetObject();
+    bool rotatePhysics = false;
 
     // handle physics objects / shadows
     if (pPhys)
@@ -4489,29 +4476,19 @@ static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &ent
         // don't rotate physics on players or bbox entities
         if (pTeleport->IsPlayer() || pTeleport->GetSolid() == SOLID_BBOX)
         {
-            if (newAngles)
-            {
-                rotAngles = newAngles;
-            }
-            else
-            {
-                rotAngles = &vec3_angle;
-            }
+            rotAngles = &vec3_angle;
+        }
+        else
+        {
+            rotatePhysics = true;
         }
 
         pPhys->SetPosition(pTeleport->GetAbsOrigin(), *rotAngles, true);
     }
 
-    g_pNotify->ReportTeleportEvent(pTeleport, prevOrigin, prevAngles, true);
+    g_pNotify->ReportTeleportEvent(pTeleport, prevOrigin, prevAngles, rotatePhysics);
 
-    if (pPhys)
-    {
-        pTeleport->SetSolidFlags(nSolidFlags);
-        if (bEnablePhysCollision)
-        {
-            pPhys->EnableCollisions(true);
-        }
-    }
+    pTeleport->SetSolidFlags(nSolidFlags);
 }
 
 
@@ -4555,6 +4532,22 @@ void CBaseEntity::Teleport(const Vector *newPosition, const QAngle *newAngles, c
     for (i = 0; i < teleportList.Count(); i++)
     {
         TeleportEntity(this, teleportList[i], newPosition, newAngles, newVelocity);
+    }
+
+    for (i = 0; i < teleportList.Count(); i++)
+    {
+        teleportList[i].pEntity->CollisionRulesChanged();
+    }
+
+    if (IsPlayer())
+    {
+        // Tell the client being teleported
+        IGameEvent *event = gameeventmanager->CreateEvent("base_player_teleported");
+        if (event)
+        {
+            event->SetInt("entindex", entindex());
+            gameeventmanager->FireEventClientSide(event);
+        }
     }
 
     Assert(g_TeleportStack[index] == this);

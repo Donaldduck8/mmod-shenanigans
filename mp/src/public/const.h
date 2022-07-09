@@ -185,6 +185,7 @@
 #define FL_DISSOLVING			(1<<29) // We're dissolving!
 #define FL_TRANSRAGDOLL			(1<<30) // In the process of turning into a client side ragdoll.
 #define FL_UNBLOCKABLE_BY_PLAYER (1<<31) // pusher that can't be blocked by the player
+#define FL_TELEPORTING			(1<<32)
 #endif
 
 // edict->movetype values

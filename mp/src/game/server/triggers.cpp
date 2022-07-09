@@ -2375,77 +2375,107 @@ void CTriggerTeleport::Spawn( void )
 //
 // Input  : pOther - The entity that touched us.
 //-----------------------------------------------------------------------------
-void CTriggerTeleport::Touch( CBaseEntity *pOther )
+void CTriggerTeleport::Touch(CBaseEntity *pOther)
 {
-	CBaseEntity	*pentTarget = NULL;
+    //CBasePlayer *pPlayer = (CBasePlayer *)pOther;
+    //pPlayer->AddFlag(FL_ATCONTROLS);
+    CBaseEntity *pentTarget = NULL;
 
-	if (!PassesTriggerFilters(pOther))
-	{
-		return;
-	}
+    if (!PassesTriggerFilters(pOther))
+    {
+        return;
+    }
 
-	// The activator and caller are the same
-	pentTarget = gEntList.FindEntityByName( pentTarget, m_target, NULL, pOther, pOther );
-	if (!pentTarget)
-	{
-	   return;
-	}
-	
-	//
-	// If a landmark was specified, offset the player relative to the landmark.
-	//
-	CBaseEntity	*pentLandmark = NULL;
-	Vector vecLandmarkOffset(0, 0, 0);
-	if (m_iLandmark != NULL_STRING)
-	{
-		// The activator and caller are the same
-		pentLandmark = gEntList.FindEntityByName(pentLandmark, m_iLandmark, NULL, pOther, pOther );
-		if (pentLandmark)
-		{
-			vecLandmarkOffset = pOther->GetAbsOrigin() - pentLandmark->GetAbsOrigin();
-		}
-	}
+    // The activator and caller are the same
+    pentTarget = gEntList.FindEntityByName(pentTarget, m_target, NULL, pOther, pOther);
+    if (!pentTarget)
+    {
+        return;
+    }
 
-	pOther->SetGroundEntity( NULL );
-	
-	Vector pExitPosition = pentTarget->GetAbsOrigin();
+    //
+    // If a landmark was specified, offset the player relative to the landmark.
+    //
+    CBaseEntity *pentLandmark = NULL;
+    Vector vecLandmarkOffset(0, 0, 0);
+    if (m_iLandmark != NULL_STRING)
+    {
+        // The activator and caller are the same
+        pentLandmark = gEntList.FindEntityByName(pentLandmark, m_iLandmark, NULL, pOther, pOther);
+        if (pentLandmark)
+        {
+            vecLandmarkOffset = pOther->GetAbsOrigin() - pentLandmark->GetAbsOrigin();
+        }
+    }
 
-	if (!pentLandmark && pOther->IsPlayer())
-	{
-		// make origin adjustments in case the teleportee is a player. (origin in center, not at feet)
-        pExitPosition.z -= pOther->WorldAlignMins().z;
-	}
+    pOther->SetGroundEntity(NULL);
 
-	//
-	// Only modify the toucher's angles and zero their velocity if no landmark was specified.
-	//
-	QAngle pAngles;
+    Vector tmp = pentTarget->GetAbsOrigin();
+
+    if (!pentLandmark && pOther->IsPlayer())
+    {
+        // make origin adjustments in case the teleportee is a player. (origin in center, not at feet)
+        tmp.z -= pOther->WorldAlignMins().z;
+    }
+
+    //
+    // Only modify the toucher's angles and zero their velocity if no landmark was specified.
+    //
+//    const QAngle *pAngles = NULL;
     Vector pVelocity;
-    Vector pVelocityNew = pOther->GetLocalVelocity();
 
-	pAngles = pentTarget->GetAbsAngles();
+	/*
+    if (!pentLandmark && !HasSpawnFlags(SF_TELEPORT_PRESERVE_ANGLES))
+    {
+        pAngles = &pentTarget->GetAbsAngles();
 
-	if (!pentLandmark && !HasSpawnFlags(SF_TELEPORT_PRESERVE_ANGLES) )
-	{
-		// Fixes a bug for some teleporters where the direction exited is different from the entry momentum direction
-        AngleVectors(pAngles, &pVelocityNew);
-        pVelocityNew.NormalizeInPlace();
-        pVelocityNew *= pOther->GetLocalVelocity().Length2D();
-	}
+        pVelocity = NULL; // BUGBUG - This does not set the player's velocity to zero!!!
+    }
+	*/
+	matrix3x4_t pTransformMatrix;
+    matrix3x4_t pLocalLandmarkMatrix;
 
-	//(CBasePlayer*)pOther->
+    matrix3x4_t pRemoteLandmarkMatrix = pentTarget->EntityToWorldTransform();
+	MatrixInvert(pOther->EntityToWorldTransform(), pLocalLandmarkMatrix);
 
-	pExitPosition += vecLandmarkOffset;
+    ConcatTransforms(pRemoteLandmarkMatrix, pLocalLandmarkMatrix, pTransformMatrix);
 
-	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-    //pPlayer->ForceButtons(IN_WALK);
-	//pOther->Teleport(&pExitPosition, &pAngles, &pVelocityNew);
-    Msg("%f\n", pPlayer->GetCurrentUserCommand()->sidemove);
-    pOther->Teleport(&pExitPosition, &pAngles, &pVelocityNew);
-    pPlayer->SetAbsAngles(pAngles);
-    pPlayer->SetAbsVelocity(pVelocityNew);
+	Vector angVec;
+    QAngle outAngles;
+    Vector vecVel = pOther->GetAbsVelocity();
+    AngleVectors(pOther->GetAbsAngles(), &angVec);
+
+	Vector outVec;
+    VectorRotate(angVec, pTransformMatrix, outVec);
+    VectorRotate(vecVel, pTransformMatrix, pVelocity);
+
+	VectorAngles(outVec, outAngles);
+    
+	/*
+	QAngle pAngles = pentTarget->GetAbsAngles();
+    Vector pVelocityNew;
+	AngleVectors(pAngles, &pVelocityNew);
+    pVelocityNew.NormalizeInPlace();
+    pVelocityNew *= pOther->GetLocalVelocity().Length2D();
+	
+	//pentTarget->SetAbsAngles(outAngles);
+    //pentTarget->SetAbsVelocity(pVelocity);
+	*/
+    //outAngles.z -= pOther->WorldAlignMins().z;
+
+
+    /*
+	if (abs(abs(pOther->GetAbsAngles().y) - abs(pentTarget->GetAbsAngles().y)) > 50)
+    {
+        Vector vecVelNew = pVelocity;
+        VectorRotate(vecVelNew, pOther->GetAbsAngles(), pVelocity);
+        Msg("OK");
+    }
+	*/
+    tmp += vecLandmarkOffset;
+    pOther->Teleport(&tmp, &outAngles, &pVelocity);
+    //pPlayer->RemoveFlag(FL_ATCONTROLS);
 }
-
 
 LINK_ENTITY_TO_CLASS( info_teleport_destination, CPointEntity );
 

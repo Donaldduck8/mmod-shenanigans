@@ -790,7 +790,6 @@ void CBasePlayer::SnapEyeAngles( const QAngle &viewAngles )
 	pl.fixangle = FIXANGLE_ABSOLUTE;
 }
 
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : iSpeed - 

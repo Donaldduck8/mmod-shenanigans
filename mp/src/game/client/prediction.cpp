@@ -641,7 +641,7 @@ void CPrediction::SetupMove( C_BasePlayer *player, CUserCmd *ucmd, IMoveHelper *
 	// Ingore buttons for movement if at controls
 	if (player->GetFlags() & FL_ATCONTROLS)
 	{
-		move->m_flForwardMove		= 0;
+        move->m_flForwardMove		= 0;
 		move->m_flSideMove			= 0;
 		move->m_flUpMove			= 0;
 	}
@@ -1404,6 +1404,7 @@ void CPrediction::RestoreEntityToPredictedFrame( int predicted_frame )
 //-----------------------------------------------------------------------------
 int CPrediction::ComputeFirstCommandToExecute( bool received_new_world_update, int incoming_acknowledged, int outgoing_command )
 {
+    MDLCACHE_CRITICAL_SECTION();
 	int destination_slot = 1;
 #if !defined( NO_ENTITY_PREDICTION )
 	int skipahead = 0;
@@ -1509,7 +1510,6 @@ int CPrediction::ComputeFirstCommandToExecute( bool received_new_world_update, i
 bool CPrediction::PerformPrediction( bool received_new_world_update, C_BasePlayer *localPlayer, 
 									int incoming_acknowledged, int outgoing_command )
 {
-	MDLCACHE_CRITICAL_SECTION();
 #if !defined( NO_ENTITY_PREDICTION )
 	VPROF( "CPrediction::PerformPrediction" );
 
@@ -1518,16 +1518,6 @@ bool CPrediction::PerformPrediction( bool received_new_world_update, C_BasePlaye
 	Assert( C_BaseEntity::IsAbsRecomputationsEnabled() );
 
 	m_bInPrediction = true;
-
-	// undo interpolation changes for entities we stand on
-	C_BaseEntity *entity = localPlayer->GetGroundEntity();
-
-	while ( entity && entity->entindex() > 0)
-	{
-		entity->MoveToLastReceivedPosition();
-		// undo changes for moveparents too
-		entity = entity->GetMoveParent();
-	}
 
 	// Start at command after last one server has processed and 
 	//  go until we get to targettime or we run out of new commands
@@ -1547,6 +1537,21 @@ bool CPrediction::PerformPrediction( bool received_new_world_update, C_BasePlaye
 	//}
 
 	Assert( i >= 1 );
+
+	localPlayer->SetCheckUntouch(true);
+    localPlayer->PhysicsCheckForEntityUntouch();
+	localPlayer->PhysicsTouchTriggers();
+
+	// undo interpolation changes for entities we stand on
+    C_BaseEntity *ground = localPlayer->GetGroundEntity();
+
+    while (ground && ground->entindex() > 0)
+    {
+        ground->MoveToLastReceivedPosition();
+        // undo changes for moveparents too
+        ground = ground->GetMoveParent();
+    }
+
 	while ( true )
 	{
 		// Incoming_acknowledged is the last usercmd the server acknowledged having acted upon
@@ -1590,25 +1595,6 @@ bool CPrediction::PerformPrediction( bool received_new_world_update, C_BasePlaye
 		{
 			localPlayer->m_nFinalPredictedTick = localPlayer->m_nTickBase;
 		}
-		/*
-		if ( 0 )
-		{
-			localPlayer->m_nFinalPredictedTick = localPlayer->m_nTickBase;
-			Msg( "%i/%i Latch final tick %i start == %i into slot %i\n", 
-				gpGlobals->framecount, gpGlobals->tickcount,
-				localPlayer->m_nFinalPredictedTick,
-				localPlayer->m_nFinalPredictedTick - i,
-				i - 1 );
-		}
-		*/
-
-		/*
-		Msg( "%i/%i Predicted command %i tickbase == %i first %s\n", 
-			gpGlobals->framecount, gpGlobals->tickcount,
-			m_nCommandsPredicted,
-			localPlayer->m_nTickBase,
-			m_bFirstTimePredicted ? "yes" : "no" );
-		*/
 
 		// Mark that we issued any needed sounds, of not done already
 		cmd->hasbeenpredicted = true;
